@@ -99,7 +99,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               : <AlertTriangle size={28} color={verdictColor} />
             }
             <span style={{ fontSize: '13px', fontWeight: '700', color: verdictColor, letterSpacing: '2px', textTransform: 'uppercase' }}>
-              {isPassing ? 'Compliance Passing' : 'Non-Compliant'}
+              {isPassing ? 'Compliance Good' : 'Bad / High Risk'}
             </span>
           </div>
 
@@ -108,6 +108,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
           </h2>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
             {countryFlag} {country} · {industry} · {result?.regulation?.name || result?.framework || 'Compliance Framework'}
+            {result?.last_updated && ` · Updated ${result.last_updated}`}
           </p>
         </div>
 
@@ -141,14 +142,14 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <StatChip label="Total Gaps" value={result?.totalGaps ?? (result?.gaps?.length || 0)} color="var(--text-secondary)" />
                 <StatChip label="Critical" value={result?.criticalGaps ?? criticalGaps.length} color="#F85149" />
-                <StatChip label="Threshold" value="60%" color={isPassing ? '#3FB950' : '#F85149'} />
+                <StatChip label="Good At" value="60%+" color={isPassing ? '#3FB950' : '#F85149'} />
               </div>
 
               {/* Threshold bar */}
               <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                 {isPassing
-                  ? <><TrendingUp size={14} color="#3FB950" /> <span style={{ color: '#3FB950' }}>{Math.round(score - 60)}% above</span> the 60% passing threshold</>
-                  : <><TrendingDown size={14} color="#F85149" /> <span style={{ color: '#F85149' }}>{Math.round(60 - score)}% below</span> the 60% passing threshold — action required</>
+                  ? <><TrendingUp size={14} color="#3FB950" /> <span style={{ color: '#3FB950' }}>{Math.round(score - 60)}% above</span> the 60% good-compliance threshold</>
+                  : <><TrendingDown size={14} color="#F85149" /> <span style={{ color: '#F85149' }}>{Math.round(60 - score)}% below</span> the 60% threshold — bad compliance risk</>
                 }
               </div>
             </div>

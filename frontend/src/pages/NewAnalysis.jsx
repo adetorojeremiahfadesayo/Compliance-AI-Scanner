@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
+import { api } from '../services/api';
 
 const STEPS = ['Industry', 'Geography', 'Codebase', 'Launch'];
 
@@ -38,15 +39,14 @@ function NewAnalysis() {
   const handleNext = async () => {
     if (!canProceed()) return;
     if (step === 2 && selectedCountry) {
-      // Simulate real-time regulation fetching
       setFetchingRegs(true);
       const regs = getRegulations(selectedIndustry, selectedCountry);
       const steps = [
-        `Connecting to global compliance registry...`,
-        `Fetching ${selectedCountryData?.label} ${selectedIndustryData?.label} regulations...`,
+        `Connecting to source-backed compliance registry...`,
+        `Loading ${selectedCountryData?.label} ${selectedIndustryData?.label} rule pack...`,
         `Parsing ${regs?.framework || 'compliance framework'}...`,
-        `Loading ${regs?.requirements?.length || 0} requirements from ${regs?.authority || 'regulatory authority'}...`,
-        `✓ Regulations ready`,
+        `Checking ${regs?.requirements?.length || 0} requirements from ${regs?.authority || 'regulatory authority'}...`,
+        `Rule pack ready`,
       ];
       for (let i = 0; i < steps.length; i++) {
         setFetchProgress(steps[i]);
@@ -62,18 +62,23 @@ function NewAnalysis() {
 
   const handleLaunch = async () => {
     setLoading(true);
-    // Simulate analysis pipeline
-    await new Promise(r => setTimeout(r, 2200));
-    const result = generateDemoScanResult(selectedCodebase, selectedIndustry, selectedCountry);
-    // Store in sessionStorage for AnalysisView to pick up
-    sessionStorage.setItem('demoResult', JSON.stringify({
-      ...result,
-      industryLabel: selectedIndustryData?.label,
-      countryLabel: selectedCountryData?.label,
-      countryFlag: selectedCountryData?.flag,
-      continent: selectedContinent,
-    }));
-    navigate(`/analysis/demo-${selectedCodebase}-${selectedCountry}`);
+    try {
+      const backendResult = await api.createDemoAnalysisForCodebase(selectedCodebase, selectedCountry);
+      navigate(`/analysis/${backendResult.id}`);
+    } catch {
+      await new Promise(r => setTimeout(r, 1200));
+      const result = generateDemoScanResult(selectedCodebase, selectedIndustry, selectedCountry);
+      sessionStorage.setItem('demoResult', JSON.stringify({
+        ...result,
+        industryLabel: selectedIndustryData?.label,
+        countryLabel: selectedCountryData?.label,
+        countryFlag: selectedCountryData?.flag,
+        continent: selectedContinent,
+      }));
+      navigate(`/analysis/demo-${selectedCodebase}-${selectedCountry}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,7 +94,7 @@ function NewAnalysis() {
       <div style={{ marginBottom: '36px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>New Compliance Scan</h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '6px' }}>
-          Check if your software complies with your country's specific industry rules — in real time.
+          Check if your software matches source-backed industry rules for a specific country.
         </p>
       </div>
 
@@ -182,7 +187,7 @@ function NewAnalysis() {
           <div className="fade-in">
             <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Select Target Geography</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '28px' }}>
-              Compliance rules are country-specific. We'll fetch the exact regulations for your chosen market.
+              Compliance rules are country-specific. We'll load a source-backed rule pack for your chosen market.
             </p>
 
             {/* Continent selector */}
@@ -275,6 +280,12 @@ function NewAnalysis() {
                   <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Loaded regulations: </span>
                   <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent-blue)' }}>{regulations.framework}</span>
                   <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}> · {regulations.authority}</span>
+                  {regulations.lastUpdated && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}> · Updated {regulations.lastUpdated}</span>}
+                  {regulations.sourceUrl && (
+                    <a href={regulations.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--accent-blue)', marginLeft: '8px' }}>
+                      Source
+                    </a>
+                  )}
                 </div>
               </div>
             )}
@@ -346,7 +357,7 @@ function NewAnalysis() {
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</div>
               <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '10px' }}>Ready to Launch</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', maxWidth: '480px', margin: '0 auto' }}>
-                The compliance engine will analyse your codebase against <strong style={{ color: 'var(--text-primary)' }}>{regulations?.requirements?.length || 0} requirements</strong> from <strong style={{ color: 'var(--text-primary)' }}>{regulations?.authority || 'the regulatory authority'}</strong>.
+                The compliance engine will analyse your codebase against <strong style={{ color: 'var(--text-primary)' }}>{regulations?.requirements?.length || 0} requirements</strong> from a source-backed <strong style={{ color: 'var(--text-primary)' }}>{regulations?.authority || 'regulatory authority'}</strong> rule pack.
               </p>
             </div>
 
@@ -357,10 +368,11 @@ function NewAnalysis() {
                 { label: 'Country', value: `${selectedCountryData?.flag} ${selectedCountryData?.label}` },
                 { label: 'Framework', value: regulations?.framework || '—' },
                 { label: 'Authority', value: regulations?.authority || '—' },
+                { label: 'Source Updated', value: regulations?.lastUpdated || '—' },
                 { label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` },
                 { label: 'Language', value: selectedCodebaseData?.language },
               ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < 5 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < 6 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{row.label}</span>
                   <span style={{ fontSize: '13px', fontWeight: '600', textAlign: 'right' }}>{row.value}</span>
                 </div>

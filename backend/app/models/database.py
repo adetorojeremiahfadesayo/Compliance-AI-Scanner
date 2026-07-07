@@ -1,4 +1,5 @@
 # database.py
+import json
 from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float, DateTime, ForeignKey, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
@@ -71,6 +72,58 @@ class Analysis(Base):
     regulation = relationship("Regulation", back_populates="analyses")
     gaps = relationship("ComplianceGap", back_populates="analysis", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="analysis", cascade="all, delete-orphan")
+
+    def _token_usage_payload(self):
+        if not self.token_usage:
+            return {}
+        try:
+            return json.loads(self.token_usage)
+        except (TypeError, ValueError):
+            return {}
+
+    @property
+    def demo_metadata(self):
+        return self._token_usage_payload().get("demo_metadata", {})
+
+    @property
+    def industry_label(self):
+        return self.demo_metadata.get("industry_label")
+
+    @property
+    def country_label(self):
+        return self.demo_metadata.get("country_label")
+
+    @property
+    def country_flag(self):
+        return self.demo_metadata.get("country_flag")
+
+    @property
+    def framework(self):
+        return self.demo_metadata.get("framework")
+
+    @property
+    def authority(self):
+        return self.demo_metadata.get("authority")
+
+    @property
+    def source_url(self):
+        return self.demo_metadata.get("source_url")
+
+    @property
+    def last_updated(self):
+        return self.demo_metadata.get("last_updated")
+
+    @property
+    def confidence_status(self):
+        return "good" if float(self.overall_score or 0) >= 60 else "bad"
+
+    @property
+    def totalGaps(self):
+        return len(self.gaps or [])
+
+    @property
+    def criticalGaps(self):
+        return len([gap for gap in (self.gaps or []) if gap.priority == "critical" and gap.status != "compliant"])
 
 class ComplianceGap(Base):
     __tablename__ = "compliance_gaps"

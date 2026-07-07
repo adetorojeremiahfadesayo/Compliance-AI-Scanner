@@ -72,6 +72,14 @@ export const api = {
     return res.json();
   },
 
+  async createDemoAnalysisForCodebase(codebaseId, countryId) {
+    const res = await fetch(`${API_BASE}/analysis/demo/${codebaseId}?country_id=${countryId}`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error("Failed to create industry demo analysis");
+    return res.json();
+  },
+
   async checkRegression(id) {
     const res = await fetch(`${API_BASE}/analysis/${id}/regression-check`, {
       method: 'POST'
@@ -93,6 +101,12 @@ export const api = {
   async getAnalysisGaps(id) {
     const res = await fetch(`${API_BASE}/analysis/${id}/gaps`);
     if (!res.ok) throw new Error("Failed to load compliance gaps");
+    return res.json();
+  },
+
+  async getCodeInspector(id) {
+    const res = await fetch(`${API_BASE}/analysis/${id}/code-inspector`);
+    if (!res.ok) throw new Error("Failed to load code inspector");
     return res.json();
   },
 

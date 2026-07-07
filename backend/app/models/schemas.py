@@ -83,6 +83,17 @@ class ComplianceGapResponse(ComplianceGapBase):
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
+class CodeAnnotation(BaseModel):
+    line_number: int
+    status: str
+    description: str
+    code_location: Optional[str] = None
+
+class CodeInspectorResponse(BaseModel):
+    file_path: str
+    code: str
+    annotations: List[CodeAnnotation] = []
+
 # Audit Log Schemas
 class AuditLogBase(BaseModel):
     agent_name: str
@@ -152,6 +163,16 @@ class AnalysisResponse(AnalysisBase):
     project: Optional[ProjectResponse] = None
     regulation: Optional[RegulationSummary] = None
     gaps: List[ComplianceGapResponse] = []
+    industry_label: Optional[str] = None
+    country_label: Optional[str] = None
+    country_flag: Optional[str] = None
+    framework: Optional[str] = None
+    authority: Optional[str] = None
+    source_url: Optional[str] = None
+    last_updated: Optional[str] = None
+    confidence_status: str = "bad"
+    totalGaps: int = 0
+    criticalGaps: int = 0
     model_config = ConfigDict(from_attributes=True)
 
 # WebSocket / Progress Update Schemas

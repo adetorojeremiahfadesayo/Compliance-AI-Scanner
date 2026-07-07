@@ -78,10 +78,10 @@ function Sidebar() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <Zap size={12} color="var(--accent-blue)" />
-            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent-blue)' }}>Real-time Engine</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent-blue)' }}>Rule Pack Engine</span>
           </div>
           <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.5' }}>
-            Regulations fetched live for your selected country & industry
+            Source-backed rule packs for your selected country and industry
           </p>
         </div>
       </div>

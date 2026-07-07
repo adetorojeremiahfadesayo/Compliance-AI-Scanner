@@ -18,7 +18,7 @@ function App() {
         padding: '40px',
         overflowY: 'auto',
         height: '100vh'
-      }>
+      }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />

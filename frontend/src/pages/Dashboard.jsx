@@ -71,7 +71,7 @@ function Dashboard() {
               </span>
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', maxWidth: '500px' }}>
-              But compliance still is. We're changing that — check if your software meets a country's specific industry rules in real time.
+              But compliance still is. We're changing that — check if your software meets source-backed country and industry rules before you ship.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>

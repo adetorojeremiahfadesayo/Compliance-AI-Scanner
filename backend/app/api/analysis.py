@@ -1,24 +1,74 @@
 # analysis.py
+import json
 import logging
 import os
+import re
 from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db, Analysis, Project, Regulation, Requirement, ComplianceGap, AuditLog
-from app.models.schemas import AnalysisCreate, AnalysisResponse, ComplianceGapResponse, AuditLogResponse, AnalysisProgress, RemediationApprovalRequest, RegressionCheckResponse
+from app.models.schemas import AnalysisCreate, AnalysisResponse, ComplianceGapResponse, AuditLogResponse, AnalysisProgress, RemediationApprovalRequest, RegressionCheckResponse, CodeInspectorResponse
 from app.agents.orchestrator import orchestrator
 from app.agents.monitor_agent import monitor_agent
 from app.api.websocket import manager
+from app.services.demo_catalog import get_demo_scan
 
 logger = logging.getLogger("app.api.analysis")
 router = APIRouter(prefix="/analysis", tags=["analysis"])
+CODE_LOCATION_RE = re.compile(r"^(?P<path>.+?)(?::L(?P<start>\d+)(?:-L?(?P<end>\d+))?)?$")
 
 async def progress_broadcaster(progress: AnalysisProgress):
     """Callback to broadcast progress packets to WebSocket listeners."""
     logger.debug(f"Broadcasting websocket packet for analysis {progress.analysis_id}")
     await manager.broadcast(progress.analysis_id, progress.model_dump())
+
+def _parse_code_location(code_location: str):
+    match = CODE_LOCATION_RE.match((code_location or "").strip())
+    if not match:
+        return None
+
+    file_path = (match.group("path") or "").strip().replace("\\", os.sep).replace("/", os.sep)
+    if not file_path:
+        return None
+
+    start = int(match.group("start")) if match.group("start") else None
+    end = int(match.group("end")) if match.group("end") else start
+    if start and end and end < start:
+        start, end = end, start
+
+    return {
+        "file_path": file_path,
+        "start_line": start,
+        "end_line": end,
+    }
+
+def _resolve_repo_file(repo_path: str, file_path: str):
+    repo_root = os.path.abspath(repo_path)
+    relative_path = file_path
+    repo_name = os.path.basename(repo_root.rstrip(os.sep))
+    path_parts = [part for part in relative_path.split(os.sep) if part]
+    if path_parts and path_parts[0] == repo_name:
+        relative_path = os.sep.join(path_parts[1:])
+
+    candidate = relative_path if os.path.isabs(relative_path) else os.path.join(repo_root, relative_path)
+    candidate = os.path.abspath(candidate)
+    try:
+        if os.path.commonpath([repo_root, candidate]) != repo_root:
+            return None
+    except ValueError:
+        return None
+    if not os.path.isfile(candidate):
+        return None
+    return candidate
+
+def _display_repo_path(repo_path: str, file_path: str):
+    repo_root = os.path.abspath(repo_path)
+    try:
+        return os.path.relpath(file_path, repo_root).replace("\\", "/")
+    except ValueError:
+        return os.path.basename(file_path)
 
 @router.post("/", response_model=AnalysisResponse)
 def start_analysis(req: AnalysisCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -182,6 +232,114 @@ def create_demo_analysis(db: Session = Depends(get_db)):
     db.refresh(analysis)
     return analysis
 
+@router.post("/demo/{codebase_id}", response_model=AnalysisResponse)
+def create_industry_demo_analysis(codebase_id: str, country_id: str = "de", db: Session = Depends(get_db)):
+    """Creates a durable industry/country demo scan for a bundled demo codebase."""
+    demo = get_demo_scan(codebase_id, country_id)
+    if not demo:
+        raise HTTPException(status_code=404, detail="Demo codebase or country rule pack not found.")
+
+    project = Project(
+        name=demo["project"]["name"],
+        repo_url=None,
+        repo_path=demo["project"]["repo_path"],
+        language=demo["project"]["language"],
+        status="active",
+    )
+    regulation = Regulation(
+        name=demo["regulation"]["framework"],
+        source=demo["regulation"]["authority"],
+        version=demo["regulation"]["last_updated"],
+        full_text=(
+            f"{demo['industry_label']} source-backed rule pack for "
+            f"{demo['country_label']}: {demo['regulation']['framework']}. "
+            f"Source: {demo['regulation']['source_url']}"
+        ),
+    )
+    db.add_all([project, regulation])
+    db.commit()
+    db.refresh(project)
+    db.refresh(regulation)
+
+    requirements = []
+    for req in demo["regulation"]["requirements"]:
+        requirements.append(Requirement(
+            regulation_id=regulation.id,
+            article_reference=req["ref"],
+            title=req["title"],
+            description=req["description"],
+            technical_requirement=f"Implement and document controls for {req['title'].lower()}.",
+            severity=req["severity"],
+            category=req["category"],
+            verification_criteria=f"Inspect code paths and configuration for {req['category']} controls.",
+        ))
+    db.add_all(requirements)
+    db.commit()
+    for req in requirements:
+        db.refresh(req)
+
+    demo_metadata = {
+        "codebase_id": demo["codebase_id"],
+        "country_id": demo["country_id"],
+        "industry_label": demo["industry_label"],
+        "country_label": demo["country_label"],
+        "country_flag": demo["country_flag"],
+        "framework": demo["regulation"]["framework"],
+        "authority": demo["regulation"]["authority"],
+        "source_url": demo["regulation"]["source_url"],
+        "last_updated": demo["regulation"]["last_updated"],
+    }
+    analysis = Analysis(
+        project_id=project.id,
+        regulation_id=regulation.id,
+        status="complete",
+        overall_score=float(demo["score"]),
+        model_provider="Qwen Cloud",
+        model_names="qwen-max, qwen-plus",
+        token_usage=json.dumps({
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "mode": "seeded_industry_demo",
+            "demo_metadata": demo_metadata,
+        }),
+        remediation_approval_status="pending_review",
+        started_at=datetime.utcnow(),
+        completed_at=datetime.utcnow(),
+    )
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    gaps = []
+    for index, req in enumerate(requirements):
+        violation, code_location = demo["violations"][index % len(demo["violations"])]
+        status = "partial" if demo["score"] >= 60 and index == 0 else "non_compliant"
+        gaps.append(ComplianceGap(
+            analysis_id=analysis.id,
+            requirement_id=req.id,
+            status=status,
+            evidence=violation,
+            gap_description=violation,
+            remediation_plan=(
+                f"Map {req.article_reference} to an owner, add automated checks for "
+                f"{req.category}, and re-run Compliance AutoPilot after remediation."
+            ),
+            code_location=code_location,
+            priority=req.severity,
+            agent_name=["GeoRegulator", "GapDetector", "RemediationEngine"][index % 3],
+        ))
+    db.add_all(gaps)
+    db.add_all([
+        AuditLog(analysis_id=analysis.id, agent_name="GeoRegulator", action="rule_pack_loaded", details=f"Loaded {demo['regulation']['framework']} for {demo['country_label']}."),
+        AuditLog(analysis_id=analysis.id, agent_name="CodebaseAnalyzer", action="demo_codebase_scanned", details=f"Scanned bundled demo codebase at {project.repo_path}."),
+        AuditLog(analysis_id=analysis.id, agent_name="GapDetector", action="gaps_discovered", details=f"Mapped {len(gaps)} findings to source-backed requirements."),
+        AuditLog(analysis_id=analysis.id, agent_name="RemediationEngine", action="recommendations_generated", details=f"Generated confidence status: {analysis.confidence_status}."),
+    ])
+    db.commit()
+    db.refresh(analysis)
+    return analysis
+
 @router.post("/{analysis_id}/approve-remediation", response_model=AnalysisResponse)
 def approve_remediation(analysis_id: int, req: RemediationApprovalRequest, db: Session = Depends(get_db)):
     """Marks generated remediation output as reviewed and approved by a human reviewer."""
@@ -277,6 +435,55 @@ def get_analysis_gaps(analysis_id: int, db: Session = Depends(get_db)):
         
     gaps = db.query(ComplianceGap).filter(ComplianceGap.analysis_id == analysis_id).all()
     return gaps
+
+@router.get("/{analysis_id}/code-inspector", response_model=CodeInspectorResponse)
+def get_code_inspector(analysis_id: int, db: Session = Depends(get_db)):
+    """Returns scanned source code and line annotations for the report inspector."""
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis session not found.")
+
+    project = analysis.project
+    if not project or not project.repo_path or not os.path.isdir(project.repo_path):
+        raise HTTPException(status_code=404, detail="Project repository path not found.")
+
+    gaps = db.query(ComplianceGap).filter(ComplianceGap.analysis_id == analysis_id).all()
+    files = {}
+    for gap in gaps:
+        parsed = _parse_code_location(gap.code_location or "")
+        if not parsed:
+            continue
+
+        resolved_file = _resolve_repo_file(project.repo_path, parsed["file_path"])
+        if not resolved_file:
+            continue
+
+        annotation_lines = []
+        if parsed["start_line"] is not None:
+            annotation_lines = range(parsed["start_line"], (parsed["end_line"] or parsed["start_line"]) + 1)
+
+        file_entry = files.setdefault(resolved_file, [])
+        for line_number in annotation_lines:
+            file_entry.append({
+                "line_number": line_number,
+                "status": gap.status,
+                "description": gap.gap_description or gap.evidence or gap.requirement.title,
+                "code_location": gap.code_location,
+            })
+
+    if not files:
+        raise HTTPException(status_code=404, detail="No readable code references found for this analysis.")
+
+    selected_file = max(files, key=lambda path: len(files[path]))
+    with open(selected_file, "r", encoding="utf-8", errors="replace") as source_file:
+        code = source_file.read()
+
+    annotations = sorted(files[selected_file], key=lambda annotation: annotation["line_number"])
+    return CodeInspectorResponse(
+        file_path=_display_repo_path(project.repo_path, selected_file),
+        code=code,
+        annotations=annotations,
+    )
 
 @router.get("/{analysis_id}/audit-log", response_model=List[AuditLogResponse])
 def get_analysis_audit(analysis_id: int, db: Session = Depends(get_db)):

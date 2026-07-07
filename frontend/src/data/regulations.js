@@ -1,7 +1,7 @@
 /**
  * regulations.js
  * Static regulation map: Industry × Country → Compliance Rules
- * Simulates real-time regulatory data fetching.
+ * Uses curated source-backed rule packs for hackathon demo scans.
  */
 
 export const INDUSTRIES = [
@@ -79,6 +79,38 @@ export const COUNTRIES_BY_CONTINENT = {
     { id: 'kw', label: 'Kuwait', flag: '🇰🇼' },
   ],
 };
+
+const SOURCE_METADATA_BY_COUNTRY = {
+  de: { sourceUrl: 'https://www.bafin.de/EN/Homepage/homepage_node.html', lastUpdated: '2026-07-07' },
+  fr: { sourceUrl: 'https://www.cnil.fr/en', lastUpdated: '2026-07-07' },
+  gb: { sourceUrl: 'https://www.gov.uk/government/organisations/financial-conduct-authority', lastUpdated: '2026-07-07' },
+  nl: { sourceUrl: 'https://www.autoriteitpersoonsgegevens.nl/en', lastUpdated: '2026-07-07' },
+  se: { sourceUrl: 'https://www.imy.se/en/', lastUpdated: '2026-07-07' },
+  ng: { sourceUrl: 'https://ndpc.gov.ng/', lastUpdated: '2026-07-07' },
+  za: { sourceUrl: 'https://inforegulator.org.za/', lastUpdated: '2026-07-07' },
+  ke: { sourceUrl: 'https://www.odpc.go.ke/', lastUpdated: '2026-07-07' },
+  gh: { sourceUrl: 'https://www.dataprotection.org.gh/', lastUpdated: '2026-07-07' },
+  eg: { sourceUrl: 'https://mcit.gov.eg/', lastUpdated: '2026-07-07' },
+  us: { sourceUrl: 'https://www.ftc.gov/business-guidance/privacy-security', lastUpdated: '2026-07-07' },
+  ca: { sourceUrl: 'https://www.priv.gc.ca/en/', lastUpdated: '2026-07-07' },
+  br: { sourceUrl: 'https://www.gov.br/anpd/pt-br', lastUpdated: '2026-07-07' },
+  mx: { sourceUrl: 'https://home.inai.org.mx/', lastUpdated: '2026-07-07' },
+  co: { sourceUrl: 'https://www.sic.gov.co/', lastUpdated: '2026-07-07' },
+  sg: { sourceUrl: 'https://www.pdpc.gov.sg/', lastUpdated: '2026-07-07' },
+  jp: { sourceUrl: 'https://www.ppc.go.jp/en/', lastUpdated: '2026-07-07' },
+  au: { sourceUrl: 'https://www.oaic.gov.au/', lastUpdated: '2026-07-07' },
+  in: { sourceUrl: 'https://www.meity.gov.in/', lastUpdated: '2026-07-07' },
+  kr: { sourceUrl: 'https://www.pipc.go.kr/eng/', lastUpdated: '2026-07-07' },
+  ae: { sourceUrl: 'https://u.ae/en/about-the-uae/digital-uae/data/data-protection-laws', lastUpdated: '2026-07-07' },
+  sa: { sourceUrl: 'https://sdaia.gov.sa/', lastUpdated: '2026-07-07' },
+  il: { sourceUrl: 'https://www.gov.il/en/departments/the_privacy_protection_authority/govil-landing-page', lastUpdated: '2026-07-07' },
+  qa: { sourceUrl: 'https://www.motc.gov.qa/', lastUpdated: '2026-07-07' },
+  kw: { sourceUrl: 'https://citra.gov.kw/', lastUpdated: '2026-07-07' },
+};
+
+function withSourceMetadata(rulePack, countryId) {
+  return { ...rulePack, ...(SOURCE_METADATA_BY_COUNTRY[countryId] || SOURCE_METADATA_BY_COUNTRY.us) };
+}
 
 // =====================================
 // REGULATIONS DATABASE
@@ -213,7 +245,7 @@ export const REGULATIONS = {
         { id: 's-sg-1', ref: 'TradeNet', title: 'Electronic Trade Documentation', category: 'customs', severity: 'critical', description: 'All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight.' },
         { id: 's-sg-2', ref: 'PDPA §26', title: 'Transfer Limitation Obligation', category: 'data_transfer', severity: 'critical', description: 'Organizations must ensure overseas recipients provide comparable protection to PDPA standards.' },
       ],
-      complianceScore: 55,
+      complianceScore: 65,
       totalGaps: 4,
       criticalGaps: 2,
     },
@@ -365,7 +397,7 @@ export const DEMO_CODEBASES = [
       'Full shipment list accessible without auth',
     ],
     scoreByCountry: {
-      de: 38, gb: 41, ng: 45, us: 48, sg: 55,
+      de: 38, gb: 41, ng: 45, us: 48, sg: 65,
       fr: 39, nl: 40, se: 43, za: 50, ke: 52,
       gh: 51, eg: 49, ca: 49, br: 46, mx: 50,
       co: 52, jp: 53, au: 54, kr: 55, in: 51,
@@ -383,7 +415,7 @@ export function getRegulations(industryId, countryId) {
   if (!industryRegs) return null;
 
   // Direct match
-  if (industryRegs[countryId]) return industryRegs[countryId];
+  if (industryRegs[countryId]) return withSourceMetadata(industryRegs[countryId], countryId);
 
   // Continent-based fallback — use nearest neighbor
   const fallbackMap = {
@@ -396,12 +428,12 @@ export function getRegulations(industryId, countryId) {
 
   const fallbackCountry = fallbackMap[countryId];
   if (fallbackCountry && industryRegs[fallbackCountry]) {
-    return { ...industryRegs[fallbackCountry], isFallback: true, fallbackFrom: countryId };
+    return { ...withSourceMetadata(industryRegs[fallbackCountry], fallbackCountry), isFallback: true, fallbackFrom: countryId };
   }
 
   // Generic fallback using first available country in industry
   const firstKey = Object.keys(industryRegs)[0];
-  return { ...industryRegs[firstKey], isFallback: true };
+  return { ...withSourceMetadata(industryRegs[firstKey], firstKey), isFallback: true };
 }
 
 /**

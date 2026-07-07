@@ -55,7 +55,7 @@ function AnalysisView() {
             setTimeout(() => setShowModal(true), 800);
             return;
           }
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
       }
 
       try {
@@ -142,9 +142,9 @@ function AnalysisView() {
       {showModal && analysis?.status === 'complete' && (
         <ComplianceReportModal
           result={analysis}
-          industry={demoMeta?.industryLabel || analysis?.industryLabel || 'Software'}
-          country={demoMeta?.countryLabel || analysis?.countryLabel || 'Global'}
-          countryFlag={demoMeta?.countryFlag || analysis?.countryFlag || '🌍'}
+          industry={demoMeta?.industryLabel || analysis?.industry_label || analysis?.industryLabel || 'Software'}
+          country={demoMeta?.countryLabel || analysis?.country_label || analysis?.countryLabel || 'Global'}
+          countryFlag={demoMeta?.countryFlag || analysis?.country_flag || analysis?.countryFlag || '🌍'}
           onClose={() => setShowModal(false)}
           onViewReport={() => { setShowModal(false); navigate(`/report/${id}`); }}
         />
@@ -158,6 +158,8 @@ function AnalysisView() {
             <span><strong style={{ color: 'var(--text-primary)' }}>{analysis?.project?.name}</strong></span>
             {demoMeta?.countryFlag && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span>{demoMeta.countryFlag} {demoMeta.countryLabel}</span></>}
             {demoMeta?.industryLabel && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span>{demoMeta.industryLabel}</span></>}
+            {analysis?.country_label && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span>{analysis.country_flag} {analysis.country_label}</span></>}
+            {analysis?.industry_label && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span>{analysis.industry_label}</span></>}
             {analysis?.framework && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span style={{ color: 'var(--accent-blue)' }}>{analysis.framework}</span></>}
           </p>
         </div>

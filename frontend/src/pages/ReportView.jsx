@@ -41,6 +41,18 @@ const MOCK_ANNOTATIONS = [
   { line_number: 23, status: "non_compliant", description: "Standard plain text variable assignments violate GDPR password hashing principles." }
 ];
 
+const MOCK_INSPECTOR = {
+  file_path: "demo-repo/app.py",
+  code: MOCK_CODE,
+  annotations: MOCK_ANNOTATIONS
+};
+
+const EMPTY_INSPECTOR = {
+  file_path: "No referenced file available",
+  code: "",
+  annotations: []
+};
+
 const MOCK_GAPS = [
   {
     id: 101,
@@ -116,6 +128,7 @@ function ReportView() {
   const navigate = useNavigate();
   const [analysis, setAnalysis] = useState(null);
   const [gaps, setGaps] = useState([]);
+  const [inspector, setInspector] = useState(null);
 
   useEffect(() => {
     async function loadReport() {
@@ -124,6 +137,12 @@ function ReportView() {
         const reportGaps = await api.getAnalysisGaps(id);
         setAnalysis(data);
         setGaps(reportGaps);
+        try {
+          const inspectorData = await api.getCodeInspector(id);
+          setInspector(inspectorData);
+        } catch {
+          setInspector(EMPTY_INSPECTOR);
+        }
       } catch {
         // Fallback for presentation
         setAnalysis({
@@ -136,6 +155,7 @@ function ReportView() {
           regulation: { name: "GDPR Article 17 & 32 Audit" }
         });
         setGaps(MOCK_GAPS);
+        setInspector(MOCK_INSPECTOR);
       }
     }
     loadReport();
@@ -259,9 +279,9 @@ function ReportView() {
           </h3>
           <div className="card" style={{ padding: '24px', marginBottom: '32px' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginBottom: '16px' }}>
-              File under inspection: <code style={{ color: 'var(--accent-purple)' }}>app.py</code>
+              File under inspection: <code style={{ color: 'var(--accent-purple)' }}>{inspector?.file_path || 'Loading code references...'}</code>
             </span>
-            <CodeViewer code={MOCK_CODE} annotations={MOCK_ANNOTATIONS} />
+            <CodeViewer code={inspector?.code || ''} annotations={inspector?.annotations || []} />
           </div>
 
           <div className="card">
