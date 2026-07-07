@@ -1,256 +1,403 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Shield, Loader2 } from 'lucide-react';
-import { api } from '../services/api';
+import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle } from 'lucide-react';
+import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
 
-const DEFAULT_TEMPLATES = [
-  { template_id: 0, article_number: "Article 17", title: "Right to Erasure ('Right to be Forgotten')", text_summary: "Covers automated user deletion routines..." },
-  { template_id: 1, article_number: "Article 32", title: "Security of Processing", text_summary: "Password hashing, data encryption, and logging leakage audits..." },
-  { template_id: 2, article_number: "Article 7", title: "Conditions for Consent", text_summary: "Consent tracking records and ease of revocation..." },
-  { template_id: 3, article_number: "Article 5", title: "Principles relating to processing", text_summary: "Data minimization and storage limitation controls..." }
-];
+const STEPS = ['Industry', 'Geography', 'Codebase', 'Launch'];
 
 function NewAnalysis() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [fetchingRegs, setFetchingRegs] = useState(false);
+  const [fetchProgress, setFetchProgress] = useState('');
 
-  // Form states
-  const [regTemplates, setRegTemplates] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [projectName, setProjectName] = useState('');
-  const [repoUrl, setRepoUrl] = useState('');
+  // Selections
+  const [selectedIndustry, setSelectedIndustry] = useState(null);
+  const [selectedContinent, setSelectedContinent] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCodebase, setSelectedCodebase] = useState(null);
+  const [regulations, setRegulations] = useState(null);
 
-  useEffect(() => {
-    async function loadTemplates() {
-      try {
-        const tmpls = await api.getRegulationTemplates();
-        if (tmpls && tmpls.length > 0) {
-          setRegTemplates(tmpls);
-        } else {
-          setRegTemplates(DEFAULT_TEMPLATES);
-        }
-      } catch {
-        setRegTemplates(DEFAULT_TEMPLATES);
+  const selectedIndustryData = INDUSTRIES.find(i => i.id === selectedIndustry);
+  const selectedCountryData = selectedContinent
+    ? COUNTRIES_BY_CONTINENT[selectedContinent]?.find(c => c.id === selectedCountry)
+    : null;
+  const selectedCodebaseData = DEMO_CODEBASES.find(c => c.id === selectedCodebase);
+
+  // Filter codebases by industry
+  const filteredCodebases = DEMO_CODEBASES.filter(cb => !selectedIndustry || cb.industry === selectedIndustry);
+
+  const canProceed = () => {
+    if (step === 1) return !!selectedIndustry;
+    if (step === 2) return !!selectedCountry;
+    if (step === 3) return !!selectedCodebase;
+    return true;
+  };
+
+  const handleNext = async () => {
+    if (!canProceed()) return;
+    if (step === 2 && selectedCountry) {
+      // Simulate real-time regulation fetching
+      setFetchingRegs(true);
+      const regs = getRegulations(selectedIndustry, selectedCountry);
+      const steps = [
+        `Connecting to global compliance registry...`,
+        `Fetching ${selectedCountryData?.label} ${selectedIndustryData?.label} regulations...`,
+        `Parsing ${regs?.framework || 'compliance framework'}...`,
+        `Loading ${regs?.requirements?.length || 0} requirements from ${regs?.authority || 'regulatory authority'}...`,
+        `✓ Regulations ready`,
+      ];
+      for (let i = 0; i < steps.length; i++) {
+        setFetchProgress(steps[i]);
+        await new Promise(r => setTimeout(r, 500));
       }
+      setRegulations(regs);
+      setFetchingRegs(false);
     }
-    loadTemplates();
-  }, []);
-
-  const handleNext = () => {
-    if (step === 1 && selectedTemplate === null) return;
-    if (step === 2 && (!projectName || !repoUrl)) return;
-    setStep(step + 1);
+    setStep(s => s + 1);
   };
 
-  const handleBack = () => {
-    setStep(step - 1);
-  };
+  const handleBack = () => setStep(s => s - 1);
 
   const handleLaunch = async () => {
     setLoading(true);
-    try {
-      // 1. Load the template into the DB as a regulation first
-      const regulation = await api.loadTemplate(selectedTemplate);
-      
-      // 2. Create the project registry
-      const project = await api.createProject({
-        name: projectName,
-        repo_url: repoUrl
-      });
-      
-      // 3. Start the analysis scan
-      const analysis = await api.startAnalysis({
-        project_id: project.id,
-        regulation_id: regulation.id
-      });
-      
-      // Navigate to active analysis dashboard
-      navigate(`/analysis/${analysis.id}`);
-    } catch (err) {
-      console.error("Failed to launch pipeline:", err);
-      // Mock redirect fallback in case of connection limits during presentation
-      navigate(`/analysis/2`);
-    } finally {
-      setLoading(false);
-    }
+    // Simulate analysis pipeline
+    await new Promise(r => setTimeout(r, 2200));
+    const result = generateDemoScanResult(selectedCodebase, selectedIndustry, selectedCountry);
+    // Store in sessionStorage for AnalysisView to pick up
+    sessionStorage.setItem('demoResult', JSON.stringify({
+      ...result,
+      industryLabel: selectedIndustryData?.label,
+      countryLabel: selectedCountryData?.label,
+      countryFlag: selectedCountryData?.flag,
+      continent: selectedContinent,
+    }));
+    navigate(`/analysis/demo-${selectedCodebase}-${selectedCountry}`);
   };
 
   return (
-    <div className="fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      {/* Back button */}
-      <button 
-        onClick={() => navigate('/')} 
+    <div className="fade-in" style={{ maxWidth: '860px', margin: '0 auto' }}>
+      {/* Back */}
+      <button
+        onClick={() => navigate('/')}
         style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px' }}
       >
         <ArrowLeft size={16} /> Back to Dashboard
       </button>
 
-      <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>Configure Compliance Scan</h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Analyze codebase dependencies and operations against GDPR compliance controls</p>
+      <div style={{ marginBottom: '36px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>New Compliance Scan</h1>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '6px' }}>
+          Check if your software complies with your country's specific industry rules — in real time.
+        </p>
       </div>
 
-      {/* Progress Wizard Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: step >= 1 ? 'var(--accent-blue)' : 'var(--border-primary)',
-            color: step >= 1 ? '#000' : 'var(--text-secondary)',
-            fontWeight: 'bold', fontSize: '12px'
-          }}>1</div>
-          <span style={{ fontSize: '14px', fontWeight: step === 1 ? '600' : '400', color: step === 1 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-            Select Regulation
-          </span>
-        </div>
-        <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-primary)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: step >= 2 ? 'var(--accent-blue)' : 'var(--border-primary)',
-            color: step >= 2 ? '#000' : 'var(--text-secondary)',
-            fontWeight: 'bold', fontSize: '12px'
-          }}>2</div>
-          <span style={{ fontSize: '14px', fontWeight: step === 2 ? '600' : '400', color: step === 2 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-            Connect Codebase
-          </span>
-        </div>
-        <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-primary)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: step >= 3 ? 'var(--accent-blue)' : 'var(--border-primary)',
-            color: step >= 3 ? '#000' : 'var(--text-secondary)',
-            fontWeight: 'bold', fontSize: '12px'
-          }}>3</div>
-          <span style={{ fontSize: '14px', fontWeight: step === 3 ? '600' : '400', color: step === 3 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-            Launch Scan
-          </span>
-        </div>
+      {/* Progress Wizard */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
+        {STEPS.map((label, idx) => {
+          const num = idx + 1;
+          const isDone = step > num;
+          const isActive = step === num;
+          return (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', flex: idx < STEPS.length - 1 ? 1 : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                <div style={{
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: isDone ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'rgba(255,255,255,0.06)',
+                  border: `2px solid ${isDone ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'var(--border-primary)'}`,
+                  color: isDone ? '#000' : isActive ? '#000' : 'var(--text-secondary)',
+                  fontWeight: '700', fontSize: '12px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: isActive ? '0 0 12px rgba(88,166,255,0.4)' : 'none',
+                }}>
+                  {isDone ? <CheckCircle size={14} /> : num}
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: isActive ? '700' : '400', color: isActive ? 'var(--text-primary)' : isDone ? 'var(--text-secondary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
+              </div>
+              {idx < STEPS.length - 1 && (
+                <div style={{ flex: 1, height: '1px', backgroundColor: step > num ? 'var(--status-compliant)' : 'var(--border-primary)', margin: '0 12px', transition: 'background-color 0.3s ease' }} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Step Contents */}
-      <div className="card" style={{ padding: '32px', marginBottom: '32px' }}>
+      {/* Step Content */}
+      <div className="card" style={{ padding: '36px', marginBottom: '28px', minHeight: '340px' }}>
+
+        {/* STEP 1: Industry */}
         {step === 1 && (
           <div className="fade-in">
-            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px' }}>Choose Regulation Template</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {regTemplates.map((tmpl) => (
-                <div 
-                  key={tmpl.template_id}
-                  onClick={() => setSelectedTemplate(tmpl.template_id)}
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Select Your Industry</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '28px' }}>
+              Each industry has distinct regulatory requirements. Choose the sector that matches your software.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {INDUSTRIES.map(ind => (
+                <div
+                  key={ind.id}
+                  onClick={() => setSelectedIndustry(ind.id)}
                   style={{
-                    padding: '20px',
-                    borderRadius: 'var(--radius-md)',
+                    padding: '22px 24px',
+                    borderRadius: '14px',
                     border: '1px solid',
-                    borderColor: selectedTemplate === tmpl.template_id ? 'var(--accent-blue)' : 'var(--border-primary)',
-                    backgroundColor: selectedTemplate === tmpl.template_id ? 'rgba(88, 166, 255, 0.03)' : 'var(--bg-secondary)',
+                    borderColor: selectedIndustry === ind.id ? ind.color : 'var(--border-primary)',
+                    background: selectedIndustry === ind.id ? ind.gradient : 'rgba(255,255,255,0.02)',
                     cursor: 'pointer',
-                    transition: 'all var(--transition-fast)'
+                    transition: 'all 0.2s ease',
+                    display: 'flex', alignItems: 'center', gap: '20px',
+                    boxShadow: selectedIndustry === ind.id ? `0 0 20px ${ind.color}20` : 'none',
                   }}
+                  onMouseEnter={e => { if (selectedIndustry !== ind.id) { e.currentTarget.style.borderColor = ind.color + '60'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; } }}
+                  onMouseLeave={e => { if (selectedIndustry !== ind.id) { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; } }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: '700', color: 'var(--accent-purple)', fontSize: '14px' }}>
-                      {tmpl.article_number}
-                    </span>
+                  <div style={{
+                    fontSize: '32px', width: '56px', height: '56px', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', borderRadius: '14px',
+                    background: `${ind.color}15`, border: `1px solid ${ind.color}30`, flexShrink: 0,
+                  }}>{ind.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: selectedIndustry === ind.id ? ind.color : 'var(--text-primary)' }}>
+                      {ind.label}
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{ind.description}</div>
                   </div>
-                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                    {tmpl.title}
-                  </h4>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    {tmpl.text_summary}
-                  </p>
+                  {selectedIndustry === ind.id && (
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: ind.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <CheckCircle size={14} color="#000" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* STEP 2: Geography */}
         {step === 2 && (
           <div className="fade-in">
-            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '24px' }}>Codebase Connection</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '500' }}>
-                  Project Name
-                </label>
-                <input 
-                  type="text" 
-                  value={projectName} 
-                  onChange={(e) => setProjectName(e.target.value)}
-                  placeholder="e.g. MySecuredApp"
-                  className="input" 
-                />
-              </div>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Select Target Geography</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '28px' }}>
+              Compliance rules are country-specific. We'll fetch the exact regulations for your chosen market.
+            </p>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '500' }}>
-                  GitHub Repository URL (Public)
-                </label>
-                <input 
-                  type="text" 
-                  value={repoUrl} 
-                  onChange={(e) => setRepoUrl(e.target.value)}
-                  placeholder="https://github.com/username/repository"
-                  className="input" 
-                />
+            {/* Continent selector */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
+                Continent
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {CONTINENTS.map(cont => (
+                  <button
+                    key={cont.id}
+                    onClick={() => { setSelectedContinent(cont.id); setSelectedCountry(null); }}
+                    style={{
+                      padding: '10px 18px', borderRadius: '10px', cursor: 'pointer',
+                      border: '1px solid',
+                      borderColor: selectedContinent === cont.id ? 'var(--accent-blue)' : 'var(--border-primary)',
+                      background: selectedContinent === cont.id ? 'rgba(88,166,255,0.1)' : 'rgba(255,255,255,0.02)',
+                      color: selectedContinent === cont.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                      fontSize: '13px', fontWeight: selectedContinent === cont.id ? '700' : '400',
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span style={{ fontSize: '16px' }}>{cont.flag}</span> {cont.label}
+                  </button>
+                ))}
               </div>
+            </div>
+
+            {/* Country selector */}
+            {selectedContinent && (
+              <div className="fade-in">
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
+                  Country
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '10px' }}>
+                  {COUNTRIES_BY_CONTINENT[selectedContinent]?.map(country => (
+                    <button
+                      key={country.id}
+                      onClick={() => setSelectedCountry(country.id)}
+                      style={{
+                        padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: selectedCountry === country.id ? 'var(--accent-blue)' : 'var(--border-primary)',
+                        background: selectedCountry === country.id ? 'rgba(88,166,255,0.08)' : 'rgba(255,255,255,0.02)',
+                        color: selectedCountry === country.id ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        fontSize: '14px', fontWeight: selectedCountry === country.id ? '600' : '400',
+                        display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
+                        transition: 'all 0.15s ease', width: '100%',
+                      }}
+                    >
+                      <span style={{ fontSize: '20px' }}>{country.flag}</span>
+                      <span>{country.label}</span>
+                      {selectedCountry === country.id && <CheckCircle size={14} color="var(--accent-blue)" style={{ marginLeft: 'auto' }} />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fetching regulations overlay */}
+            {fetchingRegs && (
+              <div style={{
+                marginTop: '24px', padding: '20px 24px',
+                background: 'rgba(88,166,255,0.05)', border: '1px solid rgba(88,166,255,0.2)',
+                borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px',
+              }}>
+                <Loader2 size={18} color="var(--accent-blue)" className="status-dot-pulsing" />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--accent-blue)', marginBottom: '2px' }}>Fetching Regulations</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{fetchProgress}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 3: Codebase */}
+        {step === 3 && (
+          <div className="fade-in">
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Select Demo Codebase</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+              Choose a pre-built demo codebase to scan. Each contains realistic compliance violations for your selected industry.
+            </p>
+
+            {regulations && (
+              <div style={{ marginBottom: '24px', padding: '14px 18px', background: 'rgba(88,166,255,0.05)', border: '1px solid rgba(88,166,255,0.15)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Globe size={16} color="var(--accent-blue)" />
+                <div>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Loaded regulations: </span>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent-blue)' }}>{regulations.framework}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}> · {regulations.authority}</span>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {filteredCodebases.map(cb => {
+                const ind = INDUSTRIES.find(i => i.id === cb.industry);
+                const score = selectedCountry ? (cb.scoreByCountry?.[selectedCountry] ?? 45) : null;
+                const isPassing = score !== null && score >= 60;
+                return (
+                  <div
+                    key={cb.id}
+                    onClick={() => setSelectedCodebase(cb.id)}
+                    style={{
+                      padding: '20px 24px', borderRadius: '14px', cursor: 'pointer',
+                      border: '1px solid',
+                      borderColor: selectedCodebase === cb.id ? 'var(--accent-blue)' : 'var(--border-primary)',
+                      background: selectedCodebase === cb.id ? 'rgba(88,166,255,0.05)' : 'rgba(255,255,255,0.02)',
+                      transition: 'all 0.2s ease',
+                      boxShadow: selectedCodebase === cb.id ? '0 0 20px rgba(88,166,255,0.12)' : 'none',
+                    }}
+                    onMouseEnter={e => { if (selectedCodebase !== cb.id) e.currentTarget.style.borderColor = 'rgba(88,166,255,0.3)'; }}
+                    onMouseLeave={e => { if (selectedCodebase !== cb.id) e.currentTarget.style.borderColor = 'var(--border-primary)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '20px' }}>{cb.languageIcon}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '700' }}>{cb.name}</span>
+                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: `${ind?.color}15`, color: ind?.color, border: `1px solid ${ind?.color}30`, fontWeight: '600' }}>
+                            {ind?.icon} {ind?.label}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>{cb.description}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {cb.violations.slice(0, 3).map((v, i) => (
+                            <span key={i} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.2)', color: '#F85149' }}>
+                              ⚠ {v.length > 38 ? v.slice(0, 38) + '…' : v}
+                            </span>
+                          ))}
+                          {cb.violations.length > 3 && <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', padding: '3px 8px' }}>+{cb.violations.length - 3} more</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+                        {score !== null && (
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '900', color: isPassing ? '#3FB950' : '#F85149', lineHeight: 1 }}>{score}%</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>est. score</div>
+                            <div style={{ marginTop: '4px', fontSize: '10px', fontWeight: '600', color: isPassing ? '#3FB950' : '#F85149', padding: '2px 6px', borderRadius: '4px', background: isPassing ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)' }}>
+                              {isPassing ? '✓ PASS' : '✗ FAIL'}
+                            </div>
+                          </div>
+                        )}
+                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>{cb.language}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.linesOfCode} lines</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {step === 3 && (
-          <div className="fade-in" style={{ textAlign: 'center' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px' }}>Scan Configuration Confirmation</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '32px' }}>
-              The multi-agent compliance pipeline will run legal parsing on chosen regulations and execute semantic pattern analysis over your repository code structure.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto 40px auto', textAlign: 'left', backgroundColor: 'var(--bg-secondary)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-primary)' }}>
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Target Regulation</span>
-                <span style={{ display: 'block', fontSize: '14px', fontWeight: '600' }}>
-                  {regTemplates.find(t => t.template_id === selectedTemplate)?.title}
-                </span>
-              </div>
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Target Codebase</span>
-                <span style={{ display: 'block', fontSize: '14px', fontWeight: '600' }}>{projectName}</span>
-                <span style={{ display: 'block', fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{repoUrl}</span>
-              </div>
+        {/* STEP 4: Launch */}
+        {step === 4 && (
+          <div className="fade-in" style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</div>
+              <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '10px' }}>Ready to Launch</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', maxWidth: '480px', margin: '0 auto' }}>
+                The compliance engine will analyse your codebase against <strong style={{ color: 'var(--text-primary)' }}>{regulations?.requirements?.length || 0} requirements</strong> from <strong style={{ color: 'var(--text-primary)' }}>{regulations?.authority || 'the regulatory authority'}</strong>.
+              </p>
             </div>
 
-            <button 
-              onClick={handleLaunch} 
+            {/* Config Summary */}
+            <div style={{ maxWidth: '420px', margin: '0 auto 36px', background: 'var(--bg-secondary)', borderRadius: '14px', border: '1px solid var(--border-primary)', overflow: 'hidden' }}>
+              {[
+                { label: 'Industry', value: `${selectedIndustryData?.icon} ${selectedIndustryData?.label}` },
+                { label: 'Country', value: `${selectedCountryData?.flag} ${selectedCountryData?.label}` },
+                { label: 'Framework', value: regulations?.framework || '—' },
+                { label: 'Authority', value: regulations?.authority || '—' },
+                { label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` },
+                { label: 'Language', value: selectedCodebaseData?.language },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < 5 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{row.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', textAlign: 'right' }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleLaunch}
               disabled={loading}
-              className="btn-primary" 
-              style={{ padding: '16px 40px', width: '100%', maxWidth: '300px', justifyContent: 'center' }}
+              className="btn-primary"
+              style={{ padding: '16px 48px', fontSize: '15px', justifyContent: 'center', minWidth: '260px' }}
             >
-              {loading ? <Loader2 size={18} className="status-dot-pulsing" /> : <Shield size={18} />}
-              <span>{loading ? 'Launching agents...' : 'Launch Compliance Pipeline'}</span>
+              {loading ? (
+                <><Loader2 size={18} className="status-dot-pulsing" /> Analysing codebase...</>
+              ) : (
+                <><Shield size={18} /> Launch Compliance Scan</>
+              )}
             </button>
           </div>
         )}
       </div>
 
-      {/* Navigation Buttons */}
-      {step < 3 && (
+      {/* Navigation */}
+      {step < 4 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {step > 1 ? (
             <button onClick={handleBack} className="btn-secondary">
-              Back
+              <ArrowLeft size={16} /> Back
             </button>
           ) : <div />}
-          
-          <button 
-            onClick={handleNext} 
-            disabled={(step === 1 && selectedTemplate === null) || (step === 2 && (!projectName || !repoUrl))}
+          <button
+            onClick={handleNext}
+            disabled={!canProceed() || fetchingRegs}
             className="btn-primary"
-            style={{ opacity: ((step === 1 && selectedTemplate === null) || (step === 2 && (!projectName || !repoUrl))) ? 0.5 : 1 }}
+            style={{ opacity: (!canProceed() || fetchingRegs) ? 0.5 : 1 }}
           >
-            <span>Next</span>
-            <ArrowRight size={16} />
+            {fetchingRegs ? <><Loader2 size={16} className="status-dot-pulsing" /> Fetching...</> : <><span>Next</span><ArrowRight size={16} /></>}
           </button>
         </div>
       )}

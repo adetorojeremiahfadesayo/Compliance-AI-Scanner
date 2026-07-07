@@ -14,11 +14,11 @@ function App() {
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
-        marginLeft: '260px', 
+        marginLeft: '240px', 
         padding: '40px',
         overflowY: 'auto',
         height: '100vh'
-      }}>
+      }>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
