@@ -1,0 +1,32 @@
+{
+  "pii_field_names": [
+    "email", "name", "first_name", "last_name", "phone", "address", 
+    "ssn", "social_security", "date_of_birth", "birthdate", "dob", 
+    "ip_address", "password", "credit_card", "card_num", "cvv", 
+    "biometric", "health_data"
+  ],
+  "consent_patterns": [
+    "consent", "agree", "opt_in", "optin", "terms_of_service", 
+    "privacy_policy", "subscribe", "accepted_terms"
+  ],
+  "encryption_patterns": [
+    "bcrypt", "argon2", "hash", "encrypt", "fernet", "aes", 
+    "pbkdf2", "sha256", "salt"
+  ],
+  "deletion_patterns": [
+    "delete", "remove", "purge", "erase", "anonymize", "destroy_user", 
+    "hard_delete", "wipe"
+  ],
+  "logging_antipatterns": [
+    "log.*email", "log.*password", "log.*ssn", "log.*phone", 
+    "print.*user", "print.*email", "print.*password"
+  ],
+  "data_storage_patterns": [
+    "db.session", "session.add", "cursor.execute", "collection.insert", 
+    ".save()", ".create(", "write(", "to_csv", "to_json"
+  ],
+  "third_party_patterns": [
+    "analytics", "tracking", "pixel", "facebook", "google_analytics", 
+    "mixpanel", "segment", "amplitude", "webhook"
+  ]
+}

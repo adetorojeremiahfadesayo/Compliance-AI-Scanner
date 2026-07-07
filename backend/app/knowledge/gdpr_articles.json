@@ -1,0 +1,93 @@
+[
+  {
+    "article_number": "Article 5",
+    "title": "Principles relating to processing of personal data",
+    "text": "Personal data shall be processed lawfully, fairly and in a transparent manner. Collected for specified, explicit and legitimate purposes. Adequate, relevant and limited to what is necessary. Accurate and kept up to date. Kept in a form which permits identification of data subjects for no longer than is necessary. Processed in a manner that ensures appropriate security.",
+    "key_requirements": [
+      {
+        "article_reference": "Article 5(1)(c)",
+        "title": "Data Minimization",
+        "description": "Ensure that collected personal data is limited to what is strictly necessary in relation to the purposes for which they are processed.",
+        "technical_requirement": "Avoid collecting excess fields like birthdates, IP addresses, or location data if not required for core operations. Audit schemas for unused PII fields.",
+        "severity": "high",
+        "category": "data_collection",
+        "verification_criteria": "Examine DB schema models and input forms for excessive or non-essential field collection."
+      },
+      {
+        "article_reference": "Article 5(1)(e)",
+        "title": "Storage Limitation",
+        "description": "Personal data must be kept in a form which permits identification of data subjects for no longer than is necessary for the purposes.",
+        "technical_requirement": "Implement data retention policies. Provide clean-up scripts, cron jobs, or soft-delete hooks to clear or anonymize inactive accounts and logs after Z months.",
+        "severity": "high",
+        "category": "storage",
+        "verification_criteria": "Look for scheduled tasks, batch deletes, or TTL settings in caching/databases."
+      }
+    ]
+  },
+  {
+    "article_number": "Article 7",
+    "title": "Conditions for consent",
+    "text": "Where processing is based on consent, the controller shall be able to demonstrate that the data subject has consented to processing of his or her personal data. The data subject shall have the right to withdraw his or her consent at any time. It shall be as easy to withdraw as to give consent.",
+    "key_requirements": [
+      {
+        "article_reference": "Article 7(1)",
+        "title": "Consent Verification & Recording",
+        "description": "Companies must keep a verifiable audit trail proving that users consented to data processing, terms of service, and privacy policy updates.",
+        "technical_requirement": "Database must contain a boolean or timestamp tracking user agreement to privacy policies, e.g., user.accepted_terms_at or user.privacy_consent = True.",
+        "severity": "critical",
+        "category": "consent",
+        "verification_criteria": "Verify DB models for fields containing 'consent', 'terms', 'privacy_agreed' and check registration API routes for saving these values."
+      },
+      {
+        "article_reference": "Article 7(3)",
+        "title": "Withdrawal of Consent",
+        "description": "It must be as easy for data subjects to withdraw consent (opt-out, unsubscribe) as it was to give it.",
+        "technical_requirement": "Provide user settings endpoint (e.g. POST /api/user/opt-out) to toggle off marketing/third-party tracking and update consent variables in DB.",
+        "severity": "high",
+        "category": "consent",
+        "verification_criteria": "Search for API routes, database fields, or client actions that support opt-out or consent revocation."
+      }
+    ]
+  },
+  {
+    "article_number": "Article 17",
+    "title": "Right to erasure ('right to be forgotten')",
+    "text": "The data subject shall have the right to obtain from the controller the erasure of personal data concerning him or her without undue delay and the controller shall have the obligation to erase personal data without undue delay.",
+    "key_requirements": [
+      {
+        "article_reference": "Article 17(1)",
+        "title": "Automated Data Erasure Endpoint",
+        "description": "Users must have the ability to delete all personal information stored about them upon request without manual admin overhead.",
+        "technical_requirement": "Implement a DELETE route (e.g. DELETE /api/users/profile or DELETE /api/account) that runs database DELETE queries or cascades to remove PII fields. Clear cache entries.",
+        "severity": "critical",
+        "category": "deletion",
+        "verification_criteria": "Check for DELETE API endpoints that delete records, trigger cascaded deletes, or overwrite user fields to anonymize profile details."
+      }
+    ]
+  },
+  {
+    "article_number": "Article 32",
+    "title": "Security of processing",
+    "text": "Taking into account the state of the art, the costs of implementation and the nature, scope, context and purposes of processing, the controller and the processor shall implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk.",
+    "key_requirements": [
+      {
+        "article_reference": "Article 32(1)(a)",
+        "title": "Password & PII Encryption",
+        "description": "Passwords must never be stored in plaintext. They must be secured using cryptographic hashing algorithms. Sensitive data at rest must be encrypted.",
+        "technical_requirement": "Utilize secure algorithms (bcrypt, argon2, pbkdf2) for hashing passwords. Verify that plaintext passwords are never saved. Apply encryption to critical fields.",
+        "severity": "critical",
+        "category": "security",
+        "verification_criteria": "Scan codebase for crypto libraries (bcrypt, hashlib, pyjwt) and verify DB models do not expose unhashed passwords."
+      },
+      {
+        "article_reference": "Article 32(1)(d)",
+        "title": "Logging Restrictions for Sensitive Data",
+        "description": "Do not leak personal data, passwords, session tokens, or SSNs in application logs or system output streams.",
+        "technical_requirement": "Do not write statements printing or logging raw user objects, emails, or credentials. Clean up debugging logs.",
+        "severity": "high",
+        "category": "security",
+        "verification_criteria": "Scan for logging operations outputting sensitive variables, matching print() or logger.info() calls with PII fields."
+      }
+    ]
+  }
+]

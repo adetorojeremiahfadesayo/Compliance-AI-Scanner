@@ -1,0 +1,68 @@
+# main.py
+import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+from app.config import settings
+from app.models.database import init_db
+from app.api.regulations import router as regulations_router
+from app.api.projects import router as projects_router
+from app.api.analysis import router as analysis_router
+from app.api.reports import router as reports_router
+from app.api.system import router as system_router
+from app.api.websocket import router as websocket_router
+
+# Setup basic logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("app.main")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup actions
+    logger.info("Initializing compliance database...")
+    init_db()
+    logger.info("Database loaded successfully.")
+    yield
+    # Shutdown actions
+    logger.info("Shutting down Compliance Autopilot API...")
+
+app = FastAPI(
+    title="Compliance Autopilot API",
+    description="Automated AI agents scanning repositories for regulatory compliance.",
+    version="0.1.0",
+    lifespan=lifespan
+)
+
+# CORS setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Wire routers
+app.include_router(regulations_router, prefix="/api")
+app.include_router(projects_router, prefix="/api")
+app.include_router(analysis_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(system_router, prefix="/api")
+app.include_router(websocket_router)  # Mounted directly for WebSocket endpoints
+
+@app.get("/")
+def read_root():
+    """Health check root endpoint."""
+    return {
+        "name": "Compliance Autopilot API",
+        "version": "0.1.0",
+        "status": "running"
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

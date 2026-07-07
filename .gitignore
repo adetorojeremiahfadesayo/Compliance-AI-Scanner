@@ -1,0 +1,29 @@
+# Version control ignores
+
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/.pytest_cache/
+backend/.env
+*.db
+*.db-journal
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# General
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+clones/
+.compliance_autopilot/
