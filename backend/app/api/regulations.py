@@ -13,6 +13,37 @@ from app.agents.regulation_parser import regulation_parser_agent
 logger = logging.getLogger("app.api.regulations")
 router = APIRouter(prefix="/regulations", tags=["regulations"])
 
+_RULE_PACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "knowledge", "rule_packs.json")
+_rule_packs_cache = None
+
+
+def _load_rule_packs():
+    """Loads the industry×country rule packs from disk (cached in memory)."""
+    global _rule_packs_cache
+    if _rule_packs_cache is None:
+        with open(_RULE_PACKS_PATH, "r", encoding="utf-8") as f:
+            _rule_packs_cache = json.load(f)
+    return _rule_packs_cache
+
+
+@router.get("/rule-pack")
+def get_rule_pack(industry: str, country: str):
+    """Returns the source-backed compliance rule pack for an industry and country."""
+    try:
+        packs = _load_rule_packs()
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Rule pack knowledge base not found.")
+
+    industry_packs = packs.get(industry)
+    if not industry_packs:
+        raise HTTPException(status_code=404, detail=f"No rule packs for industry '{industry}'.")
+
+    pack = industry_packs.get(country)
+    if not pack:
+        raise HTTPException(status_code=404, detail=f"No rule pack for {industry}/{country}.")
+
+    return {"industry": industry, "country": country, **pack}
+
 @router.get("/templates", response_model=List[dict])
 def get_templates():
     """Returns the list of pre-loaded GDPR templates from the knowledge base."""

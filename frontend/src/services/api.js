@@ -18,6 +18,12 @@ export const api = {
     return res.json();
   },
 
+  async getRulePack(industry, country) {
+    const res = await fetch(`${API_BASE}/regulations/rule-pack?industry=${encodeURIComponent(industry)}&country=${encodeURIComponent(country)}`);
+    if (!res.ok) throw new Error("Failed to load rule pack");
+    return res.json();
+  },
+
   async loadTemplate(index) {
     const res = await fetch(`${API_BASE}/regulations/load-gdpr-template?article_index=${index}`, {
       method: 'POST'

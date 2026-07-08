@@ -1,10 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle, GitBranch, AlertCircle } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
 import { api } from '../services/api';
 
 const STEPS = ['Industry', 'Geography', 'Codebase', 'Launch'];
+
+const GITHUB_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+/;
+
+// Normalizes a backend rule-pack payload (snake_case) into the camelCase shape the
+// wizard renders, so backend and offline-fallback data are interchangeable.
+function normalizeRulePack(pack) {
+  if (!pack) return null;
+  return {
+    framework: pack.framework,
+    authority: pack.authority,
+    sourceUrl: pack.sourceUrl || pack.source_url || null,
+    lastUpdated: pack.lastUpdated || pack.last_updated || null,
+    requirements: pack.requirements || [],
+    isFallback: pack.isFallback || pack.is_fallback || false,
+  };
+}
 
 function NewAnalysis() {
   const navigate = useNavigate();
@@ -19,6 +35,12 @@ function NewAnalysis() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedCodebase, setSelectedCodebase] = useState(null);
   const [regulations, setRegulations] = useState(null);
+
+  // Codebase source: 'demo' (bundled sample) or 'repo' (live scan of a GitHub URL)
+  const [scanMode, setScanMode] = useState('demo');
+  const [repoUrl, setRepoUrl] = useState('');
+  const [launchError, setLaunchError] = useState('');
+  const isValidRepoUrl = GITHUB_URL_RE.test(repoUrl.trim());
 
   const selectedIndustryData = INDUSTRIES.find(i => i.id === selectedIndustry);
   const selectedCountryData = selectedContinent
@@ -44,25 +66,22 @@ function NewAnalysis() {
   const canProceed = () => {
     if (step === 1) return !!selectedIndustry;
     if (step === 2) return !!selectedCountry;
-    if (step === 3) return !!selectedCodebase;
+    if (step === 3) return scanMode === 'repo' ? isValidRepoUrl : !!selectedCodebase;
     return true;
   };
 
   const handleNext = async () => {
     if (!canProceed()) return;
     if (step === 2 && selectedCountry) {
+      // Load the source-backed rule pack from the backend; fall back to the
+      // bundled copy if the API is unreachable so the wizard still works offline.
       setFetchingRegs(true);
-      const regs = getRegulations(selectedIndustry, selectedCountry);
-      const steps = [
-        `Connecting to source-backed compliance registry...`,
-        `Loading ${selectedCountryData?.label} ${selectedIndustryData?.label} rule pack...`,
-        `Parsing ${regs?.framework || 'compliance framework'}...`,
-        `Checking ${regs?.requirements?.length || 0} requirements from ${regs?.authority || 'regulatory authority'}...`,
-        `Rule pack ready`,
-      ];
-      for (let i = 0; i < steps.length; i++) {
-        setFetchProgress(steps[i]);
-        await new Promise(r => setTimeout(r, 500));
+      setFetchProgress('Loading rule pack…');
+      let regs;
+      try {
+        regs = normalizeRulePack(await api.getRulePack(selectedIndustry, selectedCountry));
+      } catch {
+        regs = normalizeRulePack(getRegulations(selectedIndustry, selectedCountry));
       }
       setRegulations(regs);
       setFetchingRegs(false);
@@ -72,16 +91,43 @@ function NewAnalysis() {
 
   const handleBack = () => setStep(s => s - 1);
 
+  const repoName = () => {
+    const cleaned = repoUrl.trim().replace(/\.git$/, '').replace(/\/$/, '');
+    return cleaned.split('/').slice(-1)[0] || 'repository';
+  };
+
   const handleLaunch = async () => {
     setLoading(true);
+    setLaunchError('');
+
+    if (scanMode === 'repo') {
+      // Live scan: seed a regulation, register the project, kick off the real
+      // Qwen pipeline, then hand off to the analysis view which streams progress.
+      try {
+        const reg = await api.loadTemplate(0);
+        const project = await api.createProject({ name: repoName(), repo_url: repoUrl.trim() });
+        const analysis = await api.startAnalysis({ project_id: project.id, regulation_id: reg.id });
+        navigate(`/analysis/${analysis.id}`);
+      } catch (err) {
+        console.error('Live scan failed to start:', err);
+        setLaunchError('Could not start the live scan. Check that the backend is running and the repository URL is a public GitHub repo.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Demo scan: prefer the durable backend seed; fall back to an offline demo.
     try {
       const backendResult = await api.createDemoAnalysisForCodebase(selectedCodebase, selectedCountry);
       navigate(`/analysis/${backendResult.id}`);
-    } catch {
-      await new Promise(r => setTimeout(r, 1200));
+    } catch (err) {
+      console.error('Backend demo seed failed, using offline demo:', err);
+      await new Promise(r => setTimeout(r, 800));
       const result = generateDemoScanResult(selectedCodebase, selectedIndustry, selectedCountry);
       sessionStorage.setItem('demoResult', JSON.stringify({
         ...result,
+        offlineDemo: true,
         industryLabel: selectedIndustryData?.label,
         countryLabel: selectedCountryData?.label,
         countryFlag: selectedCountryData?.flag,
@@ -280,10 +326,35 @@ function NewAnalysis() {
         {/* STEP 3: Codebase */}
         {step === 3 && (
           <div className="fade-in">
-            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Select Demo Codebase</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
-              Choose a pre-built demo codebase to scan. Each contains realistic compliance violations for your selected industry.
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Choose What to Scan</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Scan a bundled demo codebase, or run a live scan of your own public GitHub repository.
             </p>
+
+            {/* Mode toggle */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+              {[
+                { id: 'demo', label: 'Demo codebase', icon: <Shield size={15} /> },
+                { id: 'repo', label: 'My repository', icon: <GitBranch size={15} /> },
+              ].map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => { setScanMode(m.id); setLaunchError(''); }}
+                  style={{
+                    flex: 1, padding: '12px 16px', borderRadius: '10px', cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: scanMode === m.id ? 'var(--accent-blue)' : 'var(--border-primary)',
+                    background: scanMode === m.id ? 'rgba(88,166,255,0.08)' : 'rgba(255,255,255,0.02)',
+                    color: scanMode === m.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                    fontSize: '14px', fontWeight: scanMode === m.id ? '700' : '500',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {m.icon} {m.label}
+                </button>
+              ))}
+            </div>
 
             {regulations && (
               <div style={{ marginBottom: '24px', padding: '14px 18px', background: 'rgba(88,166,255,0.05)', border: '1px solid rgba(88,166,255,0.15)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -302,6 +373,7 @@ function NewAnalysis() {
               </div>
             )}
 
+            {scanMode === 'demo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {filteredCodebases.map(cb => {
                 const ind = INDUSTRIES.find(i => i.id === cb.industry);
@@ -359,6 +431,37 @@ function NewAnalysis() {
                 );
               })}
             </div>
+            )}
+
+            {scanMode === 'repo' && (
+              <div className="fade-in">
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                  Public GitHub Repository URL
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 14px', borderRadius: '10px', border: '1px solid', borderColor: repoUrl && !isValidRepoUrl ? 'var(--status-non-compliant)' : 'var(--border-primary)', background: 'rgba(255,255,255,0.02)' }}>
+                  <GitBranch size={18} color="var(--text-secondary)" />
+                  <input
+                    type="text"
+                    value={repoUrl}
+                    onChange={e => { setRepoUrl(e.target.value); setLaunchError(''); }}
+                    placeholder="https://github.com/owner/repository"
+                    style={{ flex: 1, padding: '12px 0', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', fontSize: '14px', fontFamily: 'monospace' }}
+                  />
+                  {isValidRepoUrl && <CheckCircle size={16} color="var(--status-compliant)" />}
+                </div>
+                {repoUrl && !isValidRepoUrl && (
+                  <p style={{ fontSize: '12px', color: 'var(--status-non-compliant)', marginTop: '8px' }}>
+                    Enter a valid public GitHub URL, e.g. https://github.com/owner/repository
+                  </p>
+                )}
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '14px', lineHeight: '1.6' }}>
+                  The live pipeline clones the repository and runs the full Qwen agent
+                  chain — regulation parsing, codebase analysis, gap detection, and
+                  remediation — streaming progress as it goes. Use a small public repo
+                  for the fastest scan.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -381,15 +484,23 @@ function NewAnalysis() {
                 { label: 'Framework', value: regulations?.framework || '—' },
                 { label: 'Authority', value: regulations?.authority || '—' },
                 { label: 'Source Updated', value: regulations?.lastUpdated || '—' },
-                { label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` },
-                { label: 'Language', value: selectedCodebaseData?.language },
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < 6 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
+                ...(scanMode === 'repo'
+                  ? [{ label: 'Repository', value: <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{repoName()}</span> }, { label: 'Mode', value: '🔴 Live scan' }]
+                  : [{ label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` }, { label: 'Language', value: selectedCodebaseData?.language }]),
+              ].map((row, i, arr) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < arr.length - 1 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{row.label}</span>
                   <span style={{ fontSize: '13px', fontWeight: '600', textAlign: 'right' }}>{row.value}</span>
                 </div>
               ))}
             </div>
+
+            {launchError && (
+              <div style={{ maxWidth: '480px', margin: '0 auto 24px', padding: '14px 18px', borderRadius: '10px', background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px', textAlign: 'left' }}>
+                <AlertCircle size={16} color="var(--status-non-compliant)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                <span style={{ fontSize: '13px', color: 'var(--status-non-compliant)' }}>{launchError}</span>
+              </div>
+            )}
 
             <button
               onClick={handleLaunch}
@@ -398,9 +509,9 @@ function NewAnalysis() {
               style={{ padding: '16px 48px', fontSize: '15px', justifyContent: 'center', minWidth: '260px' }}
             >
               {loading ? (
-                <><Loader2 size={18} className="status-dot-pulsing" /> Analysing codebase...</>
+                <><Loader2 size={18} className="status-dot-pulsing" /> {scanMode === 'repo' ? 'Starting live scan…' : 'Analysing codebase...'}</>
               ) : (
-                <><Shield size={18} /> Launch Compliance Scan</>
+                <><Shield size={18} /> {scanMode === 'repo' ? 'Launch Live Scan' : 'Launch Compliance Scan'}</>
               )}
             </button>
           </div>

@@ -1,0 +1,2790 @@
+{
+  "banking": {
+    "de": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "fr": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "gb": {
+      "framework": "UK GDPR + FCA SYSC + PCI-DSS",
+      "authority": "Financial Conduct Authority (FCA)",
+      "source_url": "https://www.gov.uk/government/organisations/financial-conduct-authority",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "FCA SYSC 13",
+          "title": "Operational Resilience",
+          "category": "resilience",
+          "severity": "critical",
+          "description": "Banks must identify important business services and set impact tolerances for disruptions, with documented recovery procedures."
+        },
+        {
+          "ref": "UK GDPR Art.32",
+          "title": "Data Encryption Standards",
+          "category": "security",
+          "severity": "critical",
+          "description": "All customer financial records must use encryption at rest. TLS 1.2+ required for all data in transit."
+        },
+        {
+          "ref": "PSR 2017",
+          "title": "Payment Services Regulations",
+          "category": "payment",
+          "severity": "critical",
+          "description": "Strong authentication required for remote transactions. Fraud liability frameworks must be implemented."
+        },
+        {
+          "ref": "MLR 2017",
+          "title": "Anti-Money Laundering Controls",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated transaction monitoring systems required. Suspicious activity reports must be filed within 7 days."
+        },
+        {
+          "ref": "FCA COBS 2.1",
+          "title": "Client Communication Standards",
+          "category": "communication",
+          "severity": "high",
+          "description": "All client communications must be fair, clear, and not misleading. Fee disclosures are mandatory."
+        }
+      ]
+    },
+    "nl": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "se": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "ng": {
+      "framework": "CBN Guidelines + NDPR + BOFIA",
+      "authority": "Central Bank of Nigeria (CBN)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "CBN KYC 2023",
+          "title": "Customer Identification Programme",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "BVN verification mandatory for all individual accounts. NIN required for accounts above tier 1 limits."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Data Lawful Basis",
+          "category": "data_rights",
+          "severity": "critical",
+          "description": "Personal data processing must have a documented lawful basis. Consent must be freely given and withdrawable."
+        },
+        {
+          "ref": "CBN PSP 2021",
+          "title": "Transaction Monitoring",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated monitoring for suspicious transactions above ₦5M. Reports to NFIU within 24 hours."
+        },
+        {
+          "ref": "PCI-DSS",
+          "title": "Card Data Security",
+          "category": "payment",
+          "severity": "critical",
+          "description": "No CVV storage permitted. Tokenization required for card transactions. EMV chip compliance mandatory."
+        }
+      ]
+    },
+    "za": {
+      "framework": "CBN Guidelines + NDPR + BOFIA",
+      "authority": "Central Bank of Nigeria (CBN)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBN KYC 2023",
+          "title": "Customer Identification Programme",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "BVN verification mandatory for all individual accounts. NIN required for accounts above tier 1 limits."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Data Lawful Basis",
+          "category": "data_rights",
+          "severity": "critical",
+          "description": "Personal data processing must have a documented lawful basis. Consent must be freely given and withdrawable."
+        },
+        {
+          "ref": "CBN PSP 2021",
+          "title": "Transaction Monitoring",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated monitoring for suspicious transactions above ₦5M. Reports to NFIU within 24 hours."
+        },
+        {
+          "ref": "PCI-DSS",
+          "title": "Card Data Security",
+          "category": "payment",
+          "severity": "critical",
+          "description": "No CVV storage permitted. Tokenization required for card transactions. EMV chip compliance mandatory."
+        }
+      ]
+    },
+    "ke": {
+      "framework": "CBN Guidelines + NDPR + BOFIA",
+      "authority": "Central Bank of Nigeria (CBN)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBN KYC 2023",
+          "title": "Customer Identification Programme",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "BVN verification mandatory for all individual accounts. NIN required for accounts above tier 1 limits."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Data Lawful Basis",
+          "category": "data_rights",
+          "severity": "critical",
+          "description": "Personal data processing must have a documented lawful basis. Consent must be freely given and withdrawable."
+        },
+        {
+          "ref": "CBN PSP 2021",
+          "title": "Transaction Monitoring",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated monitoring for suspicious transactions above ₦5M. Reports to NFIU within 24 hours."
+        },
+        {
+          "ref": "PCI-DSS",
+          "title": "Card Data Security",
+          "category": "payment",
+          "severity": "critical",
+          "description": "No CVV storage permitted. Tokenization required for card transactions. EMV chip compliance mandatory."
+        }
+      ]
+    },
+    "gh": {
+      "framework": "CBN Guidelines + NDPR + BOFIA",
+      "authority": "Central Bank of Nigeria (CBN)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBN KYC 2023",
+          "title": "Customer Identification Programme",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "BVN verification mandatory for all individual accounts. NIN required for accounts above tier 1 limits."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Data Lawful Basis",
+          "category": "data_rights",
+          "severity": "critical",
+          "description": "Personal data processing must have a documented lawful basis. Consent must be freely given and withdrawable."
+        },
+        {
+          "ref": "CBN PSP 2021",
+          "title": "Transaction Monitoring",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated monitoring for suspicious transactions above ₦5M. Reports to NFIU within 24 hours."
+        },
+        {
+          "ref": "PCI-DSS",
+          "title": "Card Data Security",
+          "category": "payment",
+          "severity": "critical",
+          "description": "No CVV storage permitted. Tokenization required for card transactions. EMV chip compliance mandatory."
+        }
+      ]
+    },
+    "eg": {
+      "framework": "CBN Guidelines + NDPR + BOFIA",
+      "authority": "Central Bank of Nigeria (CBN)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBN KYC 2023",
+          "title": "Customer Identification Programme",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "BVN verification mandatory for all individual accounts. NIN required for accounts above tier 1 limits."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Data Lawful Basis",
+          "category": "data_rights",
+          "severity": "critical",
+          "description": "Personal data processing must have a documented lawful basis. Consent must be freely given and withdrawable."
+        },
+        {
+          "ref": "CBN PSP 2021",
+          "title": "Transaction Monitoring",
+          "category": "aml",
+          "severity": "critical",
+          "description": "Automated monitoring for suspicious transactions above ₦5M. Reports to NFIU within 24 hours."
+        },
+        {
+          "ref": "PCI-DSS",
+          "title": "Card Data Security",
+          "category": "payment",
+          "severity": "critical",
+          "description": "No CVV storage permitted. Tokenization required for card transactions. EMV chip compliance mandatory."
+        }
+      ]
+    },
+    "us": {
+      "framework": "GLBA + CCPA + PCI-DSS + BSA/AML",
+      "authority": "CFPB / OCC / Federal Reserve",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "GLBA §501",
+          "title": "Safeguards Rule",
+          "category": "security",
+          "severity": "critical",
+          "description": "Financial institutions must implement a comprehensive information security program with designated security officer."
+        },
+        {
+          "ref": "BSA/AML",
+          "title": "Bank Secrecy Act Compliance",
+          "category": "aml",
+          "severity": "critical",
+          "description": "CTR filing for cash transactions >$10k. SAR filing for suspicious activity >$5k. Customer due diligence program required."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Consumer Privacy",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Right to know, delete, and opt-out of sale of personal information for California residents."
+        },
+        {
+          "ref": "Reg E",
+          "title": "Electronic Fund Transfer Act",
+          "category": "payment",
+          "severity": "high",
+          "description": "Error resolution procedures and liability limits for unauthorized electronic transfers must be documented."
+        }
+      ]
+    },
+    "ca": {
+      "framework": "GLBA + CCPA + PCI-DSS + BSA/AML",
+      "authority": "CFPB / OCC / Federal Reserve",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "GLBA §501",
+          "title": "Safeguards Rule",
+          "category": "security",
+          "severity": "critical",
+          "description": "Financial institutions must implement a comprehensive information security program with designated security officer."
+        },
+        {
+          "ref": "BSA/AML",
+          "title": "Bank Secrecy Act Compliance",
+          "category": "aml",
+          "severity": "critical",
+          "description": "CTR filing for cash transactions >$10k. SAR filing for suspicious activity >$5k. Customer due diligence program required."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Consumer Privacy",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Right to know, delete, and opt-out of sale of personal information for California residents."
+        },
+        {
+          "ref": "Reg E",
+          "title": "Electronic Fund Transfer Act",
+          "category": "payment",
+          "severity": "high",
+          "description": "Error resolution procedures and liability limits for unauthorized electronic transfers must be documented."
+        }
+      ]
+    },
+    "br": {
+      "framework": "GLBA + CCPA + PCI-DSS + BSA/AML",
+      "authority": "CFPB / OCC / Federal Reserve",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "GLBA §501",
+          "title": "Safeguards Rule",
+          "category": "security",
+          "severity": "critical",
+          "description": "Financial institutions must implement a comprehensive information security program with designated security officer."
+        },
+        {
+          "ref": "BSA/AML",
+          "title": "Bank Secrecy Act Compliance",
+          "category": "aml",
+          "severity": "critical",
+          "description": "CTR filing for cash transactions >$10k. SAR filing for suspicious activity >$5k. Customer due diligence program required."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Consumer Privacy",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Right to know, delete, and opt-out of sale of personal information for California residents."
+        },
+        {
+          "ref": "Reg E",
+          "title": "Electronic Fund Transfer Act",
+          "category": "payment",
+          "severity": "high",
+          "description": "Error resolution procedures and liability limits for unauthorized electronic transfers must be documented."
+        }
+      ]
+    },
+    "mx": {
+      "framework": "GLBA + CCPA + PCI-DSS + BSA/AML",
+      "authority": "CFPB / OCC / Federal Reserve",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "GLBA §501",
+          "title": "Safeguards Rule",
+          "category": "security",
+          "severity": "critical",
+          "description": "Financial institutions must implement a comprehensive information security program with designated security officer."
+        },
+        {
+          "ref": "BSA/AML",
+          "title": "Bank Secrecy Act Compliance",
+          "category": "aml",
+          "severity": "critical",
+          "description": "CTR filing for cash transactions >$10k. SAR filing for suspicious activity >$5k. Customer due diligence program required."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Consumer Privacy",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Right to know, delete, and opt-out of sale of personal information for California residents."
+        },
+        {
+          "ref": "Reg E",
+          "title": "Electronic Fund Transfer Act",
+          "category": "payment",
+          "severity": "high",
+          "description": "Error resolution procedures and liability limits for unauthorized electronic transfers must be documented."
+        }
+      ]
+    },
+    "co": {
+      "framework": "GLBA + CCPA + PCI-DSS + BSA/AML",
+      "authority": "CFPB / OCC / Federal Reserve",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "GLBA §501",
+          "title": "Safeguards Rule",
+          "category": "security",
+          "severity": "critical",
+          "description": "Financial institutions must implement a comprehensive information security program with designated security officer."
+        },
+        {
+          "ref": "BSA/AML",
+          "title": "Bank Secrecy Act Compliance",
+          "category": "aml",
+          "severity": "critical",
+          "description": "CTR filing for cash transactions >$10k. SAR filing for suspicious activity >$5k. Customer due diligence program required."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Consumer Privacy",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Right to know, delete, and opt-out of sale of personal information for California residents."
+        },
+        {
+          "ref": "Reg E",
+          "title": "Electronic Fund Transfer Act",
+          "category": "payment",
+          "severity": "high",
+          "description": "Error resolution procedures and liability limits for unauthorized electronic transfers must be documented."
+        }
+      ]
+    },
+    "sg": {
+      "framework": "MAS TRM + PDPA + Payment Services Act",
+      "authority": "Monetary Authority of Singapore (MAS)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "MAS TRM §4",
+          "title": "IT Risk Management",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Board-approved IT risk appetite statement required. Penetration testing annually for internet-facing systems."
+        },
+        {
+          "ref": "PDPA §24",
+          "title": "Data Protection",
+          "category": "security",
+          "severity": "critical",
+          "description": "Reasonable security arrangements to prevent unauthorized access, collection, use, disclosure, copying or disposal."
+        },
+        {
+          "ref": "PS Act",
+          "title": "Payment Services License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "License required for payment services. AML/CFT controls, user protection measures and cybersecurity requirements apply."
+        }
+      ]
+    },
+    "jp": {
+      "framework": "MAS TRM + PDPA + Payment Services Act",
+      "authority": "Monetary Authority of Singapore (MAS)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "MAS TRM §4",
+          "title": "IT Risk Management",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Board-approved IT risk appetite statement required. Penetration testing annually for internet-facing systems."
+        },
+        {
+          "ref": "PDPA §24",
+          "title": "Data Protection",
+          "category": "security",
+          "severity": "critical",
+          "description": "Reasonable security arrangements to prevent unauthorized access, collection, use, disclosure, copying or disposal."
+        },
+        {
+          "ref": "PS Act",
+          "title": "Payment Services License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "License required for payment services. AML/CFT controls, user protection measures and cybersecurity requirements apply."
+        }
+      ]
+    },
+    "au": {
+      "framework": "MAS TRM + PDPA + Payment Services Act",
+      "authority": "Monetary Authority of Singapore (MAS)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "MAS TRM §4",
+          "title": "IT Risk Management",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Board-approved IT risk appetite statement required. Penetration testing annually for internet-facing systems."
+        },
+        {
+          "ref": "PDPA §24",
+          "title": "Data Protection",
+          "category": "security",
+          "severity": "critical",
+          "description": "Reasonable security arrangements to prevent unauthorized access, collection, use, disclosure, copying or disposal."
+        },
+        {
+          "ref": "PS Act",
+          "title": "Payment Services License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "License required for payment services. AML/CFT controls, user protection measures and cybersecurity requirements apply."
+        }
+      ]
+    },
+    "in": {
+      "framework": "MAS TRM + PDPA + Payment Services Act",
+      "authority": "Monetary Authority of Singapore (MAS)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "MAS TRM §4",
+          "title": "IT Risk Management",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Board-approved IT risk appetite statement required. Penetration testing annually for internet-facing systems."
+        },
+        {
+          "ref": "PDPA §24",
+          "title": "Data Protection",
+          "category": "security",
+          "severity": "critical",
+          "description": "Reasonable security arrangements to prevent unauthorized access, collection, use, disclosure, copying or disposal."
+        },
+        {
+          "ref": "PS Act",
+          "title": "Payment Services License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "License required for payment services. AML/CFT controls, user protection measures and cybersecurity requirements apply."
+        }
+      ]
+    },
+    "kr": {
+      "framework": "MAS TRM + PDPA + Payment Services Act",
+      "authority": "Monetary Authority of Singapore (MAS)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "MAS TRM §4",
+          "title": "IT Risk Management",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Board-approved IT risk appetite statement required. Penetration testing annually for internet-facing systems."
+        },
+        {
+          "ref": "PDPA §24",
+          "title": "Data Protection",
+          "category": "security",
+          "severity": "critical",
+          "description": "Reasonable security arrangements to prevent unauthorized access, collection, use, disclosure, copying or disposal."
+        },
+        {
+          "ref": "PS Act",
+          "title": "Payment Services License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "License required for payment services. AML/CFT controls, user protection measures and cybersecurity requirements apply."
+        }
+      ]
+    },
+    "ae": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "sa": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "il": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "qa": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    },
+    "kw": {
+      "framework": "GDPR + BaFin KWG + PSD2",
+      "authority": "BaFin (Federal Financial Supervisory Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "KWG §25a",
+          "title": "Risk Management System",
+          "category": "risk",
+          "severity": "critical",
+          "description": "Banks must maintain an adequate risk management system with documented processes for identifying, measuring, controlling and monitoring all material risks."
+        },
+        {
+          "ref": "GDPR Art.32",
+          "title": "Encryption of Financial PII",
+          "category": "security",
+          "severity": "critical",
+          "description": "Customer financial data including IBAN, card numbers, account balances must be encrypted at rest and in transit using AES-256 or equivalent."
+        },
+        {
+          "ref": "PSD2 Art.97",
+          "title": "Strong Customer Authentication (SCA)",
+          "category": "authentication",
+          "severity": "critical",
+          "description": "All electronic payment transactions must implement SCA using at least 2 of: knowledge, possession, inherence factors."
+        },
+        {
+          "ref": "AMLD5",
+          "title": "KYC & Customer Due Diligence",
+          "category": "kyc",
+          "severity": "critical",
+          "description": "Identity verification must be completed before account activation. Enhanced due diligence required for high-risk customers."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Right to Erasure",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Customer data deletion requests must be fulfilled within 30 days, with documented audit trail of deletion."
+        },
+        {
+          "ref": "PCI-DSS v4.0",
+          "title": "Card Data Protection",
+          "category": "payment",
+          "severity": "critical",
+          "description": "CVV/CVC data must never be stored post-authorization. Full PAN storage requires tokenization. No card data in logs."
+        }
+      ]
+    }
+  },
+  "shipping": {
+    "de": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "fr": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "gb": {
+      "framework": "UK GDPR + HMRC Customs + Border Protocol",
+      "authority": "HMRC / Border Force",
+      "source_url": "https://www.gov.uk/government/organisations/financial-conduct-authority",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "UK GDPR Art.46",
+          "title": "International Transfer Safeguards",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "UK GDPR standard contractual clauses required for personal data transferred outside UK in customs processing."
+        },
+        {
+          "ref": "HMRC 2021",
+          "title": "Customs Declaration Service (CDS)",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must use HMRC Customs Declaration Service. EORI number required for all commercial shipments."
+        },
+        {
+          "ref": "UK GDPR Art.17",
+          "title": "Data Erasure on Request",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient data must be erasable upon request, subject to customs retention requirements (7 years)."
+        }
+      ]
+    },
+    "nl": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "se": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "ng": {
+      "framework": "NDPR + NCS Guidelines + NIMASA",
+      "authority": "Nigeria Customs Service (NCS)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "NDPR §2.6",
+          "title": "Cross-Border Transfer Consent",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Data subjects must explicitly consent to transfer of their personal data across Nigerian borders. Consent records must be maintained."
+        },
+        {
+          "ref": "NCS Form M",
+          "title": "Import Documentation Compliance",
+          "category": "customs",
+          "severity": "critical",
+          "description": "Pre-arrival assessment reports required for shipments above USD 1,000. HS code verification mandatory."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Lawful Processing of Recipient Data",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient PII must be processed only for shipment delivery purpose. Secondary use requires separate consent."
+        }
+      ]
+    },
+    "za": {
+      "framework": "NDPR + NCS Guidelines + NIMASA",
+      "authority": "Nigeria Customs Service (NCS)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NDPR §2.6",
+          "title": "Cross-Border Transfer Consent",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Data subjects must explicitly consent to transfer of their personal data across Nigerian borders. Consent records must be maintained."
+        },
+        {
+          "ref": "NCS Form M",
+          "title": "Import Documentation Compliance",
+          "category": "customs",
+          "severity": "critical",
+          "description": "Pre-arrival assessment reports required for shipments above USD 1,000. HS code verification mandatory."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Lawful Processing of Recipient Data",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient PII must be processed only for shipment delivery purpose. Secondary use requires separate consent."
+        }
+      ]
+    },
+    "ke": {
+      "framework": "NDPR + NCS Guidelines + NIMASA",
+      "authority": "Nigeria Customs Service (NCS)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NDPR §2.6",
+          "title": "Cross-Border Transfer Consent",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Data subjects must explicitly consent to transfer of their personal data across Nigerian borders. Consent records must be maintained."
+        },
+        {
+          "ref": "NCS Form M",
+          "title": "Import Documentation Compliance",
+          "category": "customs",
+          "severity": "critical",
+          "description": "Pre-arrival assessment reports required for shipments above USD 1,000. HS code verification mandatory."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Lawful Processing of Recipient Data",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient PII must be processed only for shipment delivery purpose. Secondary use requires separate consent."
+        }
+      ]
+    },
+    "gh": {
+      "framework": "NDPR + NCS Guidelines + NIMASA",
+      "authority": "Nigeria Customs Service (NCS)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NDPR §2.6",
+          "title": "Cross-Border Transfer Consent",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Data subjects must explicitly consent to transfer of their personal data across Nigerian borders. Consent records must be maintained."
+        },
+        {
+          "ref": "NCS Form M",
+          "title": "Import Documentation Compliance",
+          "category": "customs",
+          "severity": "critical",
+          "description": "Pre-arrival assessment reports required for shipments above USD 1,000. HS code verification mandatory."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Lawful Processing of Recipient Data",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient PII must be processed only for shipment delivery purpose. Secondary use requires separate consent."
+        }
+      ]
+    },
+    "eg": {
+      "framework": "NDPR + NCS Guidelines + NIMASA",
+      "authority": "Nigeria Customs Service (NCS)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NDPR §2.6",
+          "title": "Cross-Border Transfer Consent",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Data subjects must explicitly consent to transfer of their personal data across Nigerian borders. Consent records must be maintained."
+        },
+        {
+          "ref": "NCS Form M",
+          "title": "Import Documentation Compliance",
+          "category": "customs",
+          "severity": "critical",
+          "description": "Pre-arrival assessment reports required for shipments above USD 1,000. HS code verification mandatory."
+        },
+        {
+          "ref": "NDPR §2.1",
+          "title": "Lawful Processing of Recipient Data",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Recipient PII must be processed only for shipment delivery purpose. Secondary use requires separate consent."
+        }
+      ]
+    },
+    "us": {
+      "framework": "CBP ACE + CCPA + TSA Cargo Security",
+      "authority": "US Customs and Border Protection (CBP)",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "CBP ACE",
+          "title": "Automated Commercial Environment",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must be filed through CBP ACE. Importer Security Filing (ISF) required 24h before vessel loading."
+        },
+        {
+          "ref": "TSA ACAS",
+          "title": "Air Cargo Advance Screening",
+          "category": "security",
+          "severity": "critical",
+          "description": "Air cargo must be screened before loading. Carrier must transmit cargo data to TSA at least 4 hours before departure."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Recipient Data Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California-based recipients have right to know what data is collected and right to deletion of shipment records."
+        }
+      ]
+    },
+    "ca": {
+      "framework": "CBP ACE + CCPA + TSA Cargo Security",
+      "authority": "US Customs and Border Protection (CBP)",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBP ACE",
+          "title": "Automated Commercial Environment",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must be filed through CBP ACE. Importer Security Filing (ISF) required 24h before vessel loading."
+        },
+        {
+          "ref": "TSA ACAS",
+          "title": "Air Cargo Advance Screening",
+          "category": "security",
+          "severity": "critical",
+          "description": "Air cargo must be screened before loading. Carrier must transmit cargo data to TSA at least 4 hours before departure."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Recipient Data Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California-based recipients have right to know what data is collected and right to deletion of shipment records."
+        }
+      ]
+    },
+    "br": {
+      "framework": "CBP ACE + CCPA + TSA Cargo Security",
+      "authority": "US Customs and Border Protection (CBP)",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBP ACE",
+          "title": "Automated Commercial Environment",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must be filed through CBP ACE. Importer Security Filing (ISF) required 24h before vessel loading."
+        },
+        {
+          "ref": "TSA ACAS",
+          "title": "Air Cargo Advance Screening",
+          "category": "security",
+          "severity": "critical",
+          "description": "Air cargo must be screened before loading. Carrier must transmit cargo data to TSA at least 4 hours before departure."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Recipient Data Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California-based recipients have right to know what data is collected and right to deletion of shipment records."
+        }
+      ]
+    },
+    "mx": {
+      "framework": "CBP ACE + CCPA + TSA Cargo Security",
+      "authority": "US Customs and Border Protection (CBP)",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBP ACE",
+          "title": "Automated Commercial Environment",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must be filed through CBP ACE. Importer Security Filing (ISF) required 24h before vessel loading."
+        },
+        {
+          "ref": "TSA ACAS",
+          "title": "Air Cargo Advance Screening",
+          "category": "security",
+          "severity": "critical",
+          "description": "Air cargo must be screened before loading. Carrier must transmit cargo data to TSA at least 4 hours before departure."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Recipient Data Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California-based recipients have right to know what data is collected and right to deletion of shipment records."
+        }
+      ]
+    },
+    "co": {
+      "framework": "CBP ACE + CCPA + TSA Cargo Security",
+      "authority": "US Customs and Border Protection (CBP)",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "CBP ACE",
+          "title": "Automated Commercial Environment",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All imports must be filed through CBP ACE. Importer Security Filing (ISF) required 24h before vessel loading."
+        },
+        {
+          "ref": "TSA ACAS",
+          "title": "Air Cargo Advance Screening",
+          "category": "security",
+          "severity": "critical",
+          "description": "Air cargo must be screened before loading. Carrier must transmit cargo data to TSA at least 4 hours before departure."
+        },
+        {
+          "ref": "CCPA",
+          "title": "California Recipient Data Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California-based recipients have right to know what data is collected and right to deletion of shipment records."
+        }
+      ]
+    },
+    "sg": {
+      "framework": "PDPA + Singapore Customs TradeNet",
+      "authority": "Singapore Customs",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "TradeNet",
+          "title": "Electronic Trade Documentation",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight."
+        },
+        {
+          "ref": "PDPA §26",
+          "title": "Transfer Limitation Obligation",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Organizations must ensure overseas recipients provide comparable protection to PDPA standards."
+        }
+      ]
+    },
+    "jp": {
+      "framework": "PDPA + Singapore Customs TradeNet",
+      "authority": "Singapore Customs",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "TradeNet",
+          "title": "Electronic Trade Documentation",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight."
+        },
+        {
+          "ref": "PDPA §26",
+          "title": "Transfer Limitation Obligation",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Organizations must ensure overseas recipients provide comparable protection to PDPA standards."
+        }
+      ]
+    },
+    "au": {
+      "framework": "PDPA + Singapore Customs TradeNet",
+      "authority": "Singapore Customs",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "TradeNet",
+          "title": "Electronic Trade Documentation",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight."
+        },
+        {
+          "ref": "PDPA §26",
+          "title": "Transfer Limitation Obligation",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Organizations must ensure overseas recipients provide comparable protection to PDPA standards."
+        }
+      ]
+    },
+    "in": {
+      "framework": "PDPA + Singapore Customs TradeNet",
+      "authority": "Singapore Customs",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "TradeNet",
+          "title": "Electronic Trade Documentation",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight."
+        },
+        {
+          "ref": "PDPA §26",
+          "title": "Transfer Limitation Obligation",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Organizations must ensure overseas recipients provide comparable protection to PDPA standards."
+        }
+      ]
+    },
+    "kr": {
+      "framework": "PDPA + Singapore Customs TradeNet",
+      "authority": "Singapore Customs",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "TradeNet",
+          "title": "Electronic Trade Documentation",
+          "category": "customs",
+          "severity": "critical",
+          "description": "All import/export permits must be processed through TradeNet. Advance cargo reporting required for sea/air freight."
+        },
+        {
+          "ref": "PDPA §26",
+          "title": "Transfer Limitation Obligation",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Organizations must ensure overseas recipients provide comparable protection to PDPA standards."
+        }
+      ]
+    },
+    "ae": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "sa": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "il": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "qa": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    },
+    "kw": {
+      "framework": "GDPR + EU Customs Code + eIDAS",
+      "authority": "Bundeszollverwaltung (German Customs Authority)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "UCC Art.12",
+          "title": "Customs Data Encryption",
+          "category": "security",
+          "severity": "critical",
+          "description": "All electronic customs declarations containing recipient personal data must be transmitted over encrypted channels (TLS 1.3+)."
+        },
+        {
+          "ref": "GDPR Art.44",
+          "title": "Cross-Border Data Transfer Controls",
+          "category": "data_transfer",
+          "severity": "critical",
+          "description": "Transfers of EU resident data to third countries require adequacy decision or standard contractual clauses."
+        },
+        {
+          "ref": "GDPR Art.13",
+          "title": "Recipient Notification",
+          "category": "transparency",
+          "severity": "high",
+          "description": "Recipients must be notified that their personal data will be shared with customs authorities in destination country."
+        },
+        {
+          "ref": "GDPR Art.5(1)(e)",
+          "title": "Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "Shipment records containing PII must be purged after regulatory retention period (typically 10 years). Automated deletion required."
+        },
+        {
+          "ref": "eIDAS",
+          "title": "Electronic Signature on Manifests",
+          "category": "authentication",
+          "severity": "medium",
+          "description": "Customs manifests for cross-border shipments should use qualified electronic signatures for authenticity."
+        }
+      ]
+    }
+  },
+  "entertainment": {
+    "de": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "fr": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "gb": {
+      "framework": "UK GDPR + Online Safety Act + BBFC",
+      "authority": "Ofcom / BBFC",
+      "source_url": "https://www.gov.uk/government/organisations/financial-conduct-authority",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "Online Safety Act 2023",
+          "title": "Age Assurance for Adult Content",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms must implement \"highly effective\" age verification. Acceptable methods: credit card check, digital ID, or third-party age verification service."
+        },
+        {
+          "ref": "BBFC",
+          "title": "Content Classification Compliance",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video-on-demand content must carry BBFC classification or equivalent. Misclassification can result in £18M fines."
+        },
+        {
+          "ref": "UK GDPR Art.8",
+          "title": "Children's Data Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Parental consent required for processing data of users under 13. Age-appropriate design code applies to services likely used by children."
+        },
+        {
+          "ref": "ICO Cookie Guidance",
+          "title": "Consent Before Tracking",
+          "category": "consent",
+          "severity": "high",
+          "description": "No tracking cookies or pixels may be set before user provides informed, specific consent. Pre-ticked boxes are not valid consent."
+        }
+      ]
+    },
+    "nl": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "se": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "ng": {
+      "framework": "NBC Code + NDPR + NFVCB",
+      "authority": "National Broadcasting Commission (NBC)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "NFVCB Act",
+          "title": "Content Classification",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video content must be classified by NFVCB before distribution. Minimum age ratings must be displayed."
+        },
+        {
+          "ref": "NBC Code §5",
+          "title": "Local Content Quota",
+          "category": "local_content",
+          "severity": "high",
+          "description": "Streaming platforms serving Nigerian users must ensure minimum 30% local Nigerian content in their catalogue."
+        },
+        {
+          "ref": "NDPR §2.5",
+          "title": "User Consent for Data Collection",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit user consent required before collecting viewing behavior data. Users must be informed in plain language."
+        }
+      ]
+    },
+    "za": {
+      "framework": "NBC Code + NDPR + NFVCB",
+      "authority": "National Broadcasting Commission (NBC)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NFVCB Act",
+          "title": "Content Classification",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video content must be classified by NFVCB before distribution. Minimum age ratings must be displayed."
+        },
+        {
+          "ref": "NBC Code §5",
+          "title": "Local Content Quota",
+          "category": "local_content",
+          "severity": "high",
+          "description": "Streaming platforms serving Nigerian users must ensure minimum 30% local Nigerian content in their catalogue."
+        },
+        {
+          "ref": "NDPR §2.5",
+          "title": "User Consent for Data Collection",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit user consent required before collecting viewing behavior data. Users must be informed in plain language."
+        }
+      ]
+    },
+    "ke": {
+      "framework": "NBC Code + NDPR + NFVCB",
+      "authority": "National Broadcasting Commission (NBC)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NFVCB Act",
+          "title": "Content Classification",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video content must be classified by NFVCB before distribution. Minimum age ratings must be displayed."
+        },
+        {
+          "ref": "NBC Code §5",
+          "title": "Local Content Quota",
+          "category": "local_content",
+          "severity": "high",
+          "description": "Streaming platforms serving Nigerian users must ensure minimum 30% local Nigerian content in their catalogue."
+        },
+        {
+          "ref": "NDPR §2.5",
+          "title": "User Consent for Data Collection",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit user consent required before collecting viewing behavior data. Users must be informed in plain language."
+        }
+      ]
+    },
+    "gh": {
+      "framework": "NBC Code + NDPR + NFVCB",
+      "authority": "National Broadcasting Commission (NBC)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NFVCB Act",
+          "title": "Content Classification",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video content must be classified by NFVCB before distribution. Minimum age ratings must be displayed."
+        },
+        {
+          "ref": "NBC Code §5",
+          "title": "Local Content Quota",
+          "category": "local_content",
+          "severity": "high",
+          "description": "Streaming platforms serving Nigerian users must ensure minimum 30% local Nigerian content in their catalogue."
+        },
+        {
+          "ref": "NDPR §2.5",
+          "title": "User Consent for Data Collection",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit user consent required before collecting viewing behavior data. Users must be informed in plain language."
+        }
+      ]
+    },
+    "eg": {
+      "framework": "NBC Code + NDPR + NFVCB",
+      "authority": "National Broadcasting Commission (NBC)",
+      "source_url": "https://ndpc.gov.ng/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "NFVCB Act",
+          "title": "Content Classification",
+          "category": "content_rating",
+          "severity": "critical",
+          "description": "All video content must be classified by NFVCB before distribution. Minimum age ratings must be displayed."
+        },
+        {
+          "ref": "NBC Code §5",
+          "title": "Local Content Quota",
+          "category": "local_content",
+          "severity": "high",
+          "description": "Streaming platforms serving Nigerian users must ensure minimum 30% local Nigerian content in their catalogue."
+        },
+        {
+          "ref": "NDPR §2.5",
+          "title": "User Consent for Data Collection",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit user consent required before collecting viewing behavior data. Users must be informed in plain language."
+        }
+      ]
+    },
+    "us": {
+      "framework": "COPPA + CCPA + FTC Guidelines",
+      "authority": "FTC / State AGs",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "COPPA",
+          "title": "Children's Online Privacy Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Verifiable parental consent required before collecting personal information from children under 13. No behavioral advertising to children."
+        },
+        {
+          "ref": "CCPA",
+          "title": "Consumer Privacy Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California users have right to know, delete, and opt-out of sale of watch history, behavioral data, and preferences."
+        },
+        {
+          "ref": "DMCA",
+          "title": "Digital Millennium Copyright Act",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "Platform must implement notice-and-takedown procedures. Safe harbor requires designated DMCA agent and expedient takedown."
+        },
+        {
+          "ref": "FTC DRM",
+          "title": "DRM & Content Protection",
+          "category": "drm",
+          "severity": "high",
+          "description": "Streaming content must implement Digital Rights Management to prevent unauthorized copying and redistribution."
+        }
+      ]
+    },
+    "ca": {
+      "framework": "COPPA + CCPA + FTC Guidelines",
+      "authority": "FTC / State AGs",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "COPPA",
+          "title": "Children's Online Privacy Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Verifiable parental consent required before collecting personal information from children under 13. No behavioral advertising to children."
+        },
+        {
+          "ref": "CCPA",
+          "title": "Consumer Privacy Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California users have right to know, delete, and opt-out of sale of watch history, behavioral data, and preferences."
+        },
+        {
+          "ref": "DMCA",
+          "title": "Digital Millennium Copyright Act",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "Platform must implement notice-and-takedown procedures. Safe harbor requires designated DMCA agent and expedient takedown."
+        },
+        {
+          "ref": "FTC DRM",
+          "title": "DRM & Content Protection",
+          "category": "drm",
+          "severity": "high",
+          "description": "Streaming content must implement Digital Rights Management to prevent unauthorized copying and redistribution."
+        }
+      ]
+    },
+    "br": {
+      "framework": "COPPA + CCPA + FTC Guidelines",
+      "authority": "FTC / State AGs",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "COPPA",
+          "title": "Children's Online Privacy Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Verifiable parental consent required before collecting personal information from children under 13. No behavioral advertising to children."
+        },
+        {
+          "ref": "CCPA",
+          "title": "Consumer Privacy Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California users have right to know, delete, and opt-out of sale of watch history, behavioral data, and preferences."
+        },
+        {
+          "ref": "DMCA",
+          "title": "Digital Millennium Copyright Act",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "Platform must implement notice-and-takedown procedures. Safe harbor requires designated DMCA agent and expedient takedown."
+        },
+        {
+          "ref": "FTC DRM",
+          "title": "DRM & Content Protection",
+          "category": "drm",
+          "severity": "high",
+          "description": "Streaming content must implement Digital Rights Management to prevent unauthorized copying and redistribution."
+        }
+      ]
+    },
+    "mx": {
+      "framework": "COPPA + CCPA + FTC Guidelines",
+      "authority": "FTC / State AGs",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "COPPA",
+          "title": "Children's Online Privacy Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Verifiable parental consent required before collecting personal information from children under 13. No behavioral advertising to children."
+        },
+        {
+          "ref": "CCPA",
+          "title": "Consumer Privacy Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California users have right to know, delete, and opt-out of sale of watch history, behavioral data, and preferences."
+        },
+        {
+          "ref": "DMCA",
+          "title": "Digital Millennium Copyright Act",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "Platform must implement notice-and-takedown procedures. Safe harbor requires designated DMCA agent and expedient takedown."
+        },
+        {
+          "ref": "FTC DRM",
+          "title": "DRM & Content Protection",
+          "category": "drm",
+          "severity": "high",
+          "description": "Streaming content must implement Digital Rights Management to prevent unauthorized copying and redistribution."
+        }
+      ]
+    },
+    "co": {
+      "framework": "COPPA + CCPA + FTC Guidelines",
+      "authority": "FTC / State AGs",
+      "source_url": "https://www.ftc.gov/business-guidance/privacy-security",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "COPPA",
+          "title": "Children's Online Privacy Protection",
+          "category": "childrens_data",
+          "severity": "critical",
+          "description": "Verifiable parental consent required before collecting personal information from children under 13. No behavioral advertising to children."
+        },
+        {
+          "ref": "CCPA",
+          "title": "Consumer Privacy Rights",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "California users have right to know, delete, and opt-out of sale of watch history, behavioral data, and preferences."
+        },
+        {
+          "ref": "DMCA",
+          "title": "Digital Millennium Copyright Act",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "Platform must implement notice-and-takedown procedures. Safe harbor requires designated DMCA agent and expedient takedown."
+        },
+        {
+          "ref": "FTC DRM",
+          "title": "DRM & Content Protection",
+          "category": "drm",
+          "severity": "high",
+          "description": "Streaming content must implement Digital Rights Management to prevent unauthorized copying and redistribution."
+        }
+      ]
+    },
+    "sg": {
+      "framework": "IMDA Guidelines + PDPA + Broadcast Act",
+      "authority": "Infocomm Media Development Authority (IMDA)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": false,
+      "requirements": [
+        {
+          "ref": "IMDA OTT",
+          "title": "Over-the-Top Content License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "Video streaming platforms with significant reach must hold IMDA OTT Content Provider license."
+        },
+        {
+          "ref": "PDPA §14",
+          "title": "Behavioral Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "User behavioral data must not be retained beyond business purpose. Automatic deletion schedules required."
+        },
+        {
+          "ref": "Media Literacy Council",
+          "title": "Content Rating Compliance",
+          "category": "content_rating",
+          "severity": "high",
+          "description": "All content must carry approved rating labels (G, PG, PG13, NC16, M18, R21). Age-gating mandatory for R21 content."
+        }
+      ]
+    },
+    "jp": {
+      "framework": "IMDA Guidelines + PDPA + Broadcast Act",
+      "authority": "Infocomm Media Development Authority (IMDA)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "IMDA OTT",
+          "title": "Over-the-Top Content License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "Video streaming platforms with significant reach must hold IMDA OTT Content Provider license."
+        },
+        {
+          "ref": "PDPA §14",
+          "title": "Behavioral Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "User behavioral data must not be retained beyond business purpose. Automatic deletion schedules required."
+        },
+        {
+          "ref": "Media Literacy Council",
+          "title": "Content Rating Compliance",
+          "category": "content_rating",
+          "severity": "high",
+          "description": "All content must carry approved rating labels (G, PG, PG13, NC16, M18, R21). Age-gating mandatory for R21 content."
+        }
+      ]
+    },
+    "au": {
+      "framework": "IMDA Guidelines + PDPA + Broadcast Act",
+      "authority": "Infocomm Media Development Authority (IMDA)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "IMDA OTT",
+          "title": "Over-the-Top Content License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "Video streaming platforms with significant reach must hold IMDA OTT Content Provider license."
+        },
+        {
+          "ref": "PDPA §14",
+          "title": "Behavioral Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "User behavioral data must not be retained beyond business purpose. Automatic deletion schedules required."
+        },
+        {
+          "ref": "Media Literacy Council",
+          "title": "Content Rating Compliance",
+          "category": "content_rating",
+          "severity": "high",
+          "description": "All content must carry approved rating labels (G, PG, PG13, NC16, M18, R21). Age-gating mandatory for R21 content."
+        }
+      ]
+    },
+    "in": {
+      "framework": "IMDA Guidelines + PDPA + Broadcast Act",
+      "authority": "Infocomm Media Development Authority (IMDA)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "IMDA OTT",
+          "title": "Over-the-Top Content License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "Video streaming platforms with significant reach must hold IMDA OTT Content Provider license."
+        },
+        {
+          "ref": "PDPA §14",
+          "title": "Behavioral Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "User behavioral data must not be retained beyond business purpose. Automatic deletion schedules required."
+        },
+        {
+          "ref": "Media Literacy Council",
+          "title": "Content Rating Compliance",
+          "category": "content_rating",
+          "severity": "high",
+          "description": "All content must carry approved rating labels (G, PG, PG13, NC16, M18, R21). Age-gating mandatory for R21 content."
+        }
+      ]
+    },
+    "kr": {
+      "framework": "IMDA Guidelines + PDPA + Broadcast Act",
+      "authority": "Infocomm Media Development Authority (IMDA)",
+      "source_url": "https://www.pdpc.gov.sg/",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "IMDA OTT",
+          "title": "Over-the-Top Content License",
+          "category": "licensing",
+          "severity": "critical",
+          "description": "Video streaming platforms with significant reach must hold IMDA OTT Content Provider license."
+        },
+        {
+          "ref": "PDPA §14",
+          "title": "Behavioral Data Retention Limits",
+          "category": "retention",
+          "severity": "high",
+          "description": "User behavioral data must not be retained beyond business purpose. Automatic deletion schedules required."
+        },
+        {
+          "ref": "Media Literacy Council",
+          "title": "Content Rating Compliance",
+          "category": "content_rating",
+          "severity": "high",
+          "description": "All content must carry approved rating labels (G, PG, PG13, NC16, M18, R21). Age-gating mandatory for R21 content."
+        }
+      ]
+    },
+    "ae": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "sa": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "il": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "qa": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    },
+    "kw": {
+      "framework": "GDPR + JMStV + UrhG",
+      "authority": "Landesmedienanstalten (State Media Authorities)",
+      "source_url": "https://www.bafin.de/EN/Homepage/homepage_node.html",
+      "last_updated": "2026-07-07",
+      "is_fallback": true,
+      "requirements": [
+        {
+          "ref": "JMStV §5",
+          "title": "Youth Protection & Age Verification",
+          "category": "age_verification",
+          "severity": "critical",
+          "description": "Platforms offering content rated 16+ or 18+ must implement verified age gates. Self-declaration is insufficient — ID verification required."
+        },
+        {
+          "ref": "UrhG §44b",
+          "title": "Content Licensing & Copyright",
+          "category": "ip_rights",
+          "severity": "critical",
+          "description": "All streamed content must have documented licenses for DE territory. Geo-blocking required for content without German rights."
+        },
+        {
+          "ref": "GDPR Art.7",
+          "title": "Cookie & Tracking Consent",
+          "category": "consent",
+          "severity": "critical",
+          "description": "Explicit, informed consent required before any analytics, advertising, or behavioral tracking cookies are set."
+        },
+        {
+          "ref": "GDPR Art.17",
+          "title": "Account & Data Deletion",
+          "category": "data_rights",
+          "severity": "high",
+          "description": "Users must be able to delete their account and all associated data (watch history, preferences, payment info) within 30 days."
+        },
+        {
+          "ref": "DSGVO",
+          "title": "Data Minimization for Analytics",
+          "category": "data_minimization",
+          "severity": "high",
+          "description": "Behavioral tracking data must be anonymized or pseudonymized. Purpose limitation applies — cannot use watch data for unrelated profiling."
+        }
+      ]
+    }
+  }
+}

@@ -31,6 +31,7 @@ function AnalysisView() {
   const [regressionResult, setRegressionResult] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [demoMeta, setDemoMeta] = useState(null);
+  const [offlineMode, setOfflineMode] = useState(false);
 
   const stages = ['pending', 'parsing', 'scanning', 'detecting', 'remediating', 'complete'];
 
@@ -47,6 +48,7 @@ function AnalysisView() {
           if (id.startsWith('demo-')) {
             sessionStorage.removeItem('demoResult');
             setDemoMeta({ industryLabel: demo.industryLabel, countryLabel: demo.countryLabel, countryFlag: demo.countryFlag });
+            setOfflineMode(!!demo.offlineDemo);
             setAnalysis(demo);
             setGaps(demo.gaps || []);
             setAuditLogs(DEMO_LOGS(demo.project?.name, demo.countryLabel, demo.framework));
@@ -76,6 +78,7 @@ function AnalysisView() {
         }
       } catch (err) {
         console.error('Failed to load analysis:', err);
+        setOfflineMode(true);
         const fallback = {
           id: 2, status: 'complete', overall_score: 41.6,
           model_provider: 'Compliance AutoPilot Engine',
@@ -153,7 +156,14 @@ function AnalysisView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>Compliance Scan Audit</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>Compliance Scan Audit</h1>
+            {offlineMode && (
+              <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: 'rgba(210,153,34,0.12)', border: '1px solid rgba(210,153,34,0.35)', color: '#D29922' }}>
+                OFFLINE DEMO — backend unavailable
+              </span>
+            )}
+          </div>
           <p style={{ color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', fontSize: '14px' }}>
             <span><strong style={{ color: 'var(--text-primary)' }}>{analysis?.project?.name}</strong></span>
             {demoMeta?.countryFlag && <><span style={{ color: 'var(--text-tertiary)' }}>·</span><span>{demoMeta.countryFlag} {demoMeta.countryLabel}</span></>}
