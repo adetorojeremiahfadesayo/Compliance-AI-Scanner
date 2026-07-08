@@ -1,11 +1,24 @@
 # github_service.py
 import asyncio
 import os
+import re
 import shutil
 import logging
-from typing import List
+from typing import List, Optional, Tuple
+
+import httpx
 
 logger = logging.getLogger("app.services.github_service")
+
+GITHUB_REPO_RE = re.compile(r"github\.com[/:]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$", re.IGNORECASE)
+
+
+def parse_github_repo(repo_url: str) -> Optional[Tuple[str, str]]:
+    """Extracts (owner, repo) from a GitHub URL, or None if it isn't one."""
+    match = GITHUB_REPO_RE.search(repo_url or "")
+    if not match:
+        return None
+    return match.group(1), match.group(2)
 
 class GitHubService:
     """Clones public repositories and walks directory trees to extract files."""
@@ -99,6 +112,90 @@ class GitHubService:
                     
         logger.info(f"Found {len(code_files)} code files in {repo_path}")
         return code_files
+
+    async def push_fix_branch(
+        self,
+        repo_path: str,
+        repo_url: str,
+        branch: str,
+        file_name: str,
+        content: str,
+        commit_message: str,
+        token: str,
+    ):
+        """Commits a remediation file to a new branch of the cloned repo and pushes it."""
+        owner_repo = parse_github_repo(repo_url)
+        if not owner_repo:
+            raise ValueError(f"Not a GitHub repository URL: {repo_url}")
+        owner, repo = owner_repo
+
+        original_ref = await self._run_git(["-C", repo_path, "rev-parse", "--abbrev-ref", "HEAD"])
+        await self._run_git(["-C", repo_path, "checkout", "-B", branch])
+        try:
+            with open(os.path.join(repo_path, file_name), "w", encoding="utf-8") as f:
+                f.write(content)
+            await self._run_git(["-C", repo_path, "add", file_name])
+            await self._run_git([
+                "-C", repo_path,
+                "-c", "user.name=Compliance Autopilot",
+                "-c", "user.email=autopilot@compliance.local",
+                "commit", "-m", commit_message,
+            ])
+            push_url = f"https://x-access-token:{token}@github.com/{owner}/{repo}.git"
+            await self._run_git(["-C", repo_path, "push", "--force", push_url, f"{branch}:{branch}"])
+        finally:
+            # Leave the working copy back on its original branch for future scans
+            try:
+                await self._run_git(["-C", repo_path, "checkout", original_ref])
+            except Exception as checkout_err:
+                logger.warning(f"Could not restore branch {original_ref} in {repo_path}: {checkout_err}")
+
+    async def create_pull_request(
+        self,
+        repo_url: str,
+        branch: str,
+        title: str,
+        body: str,
+        token: str,
+    ) -> str:
+        """Opens a pull request for the pushed branch; returns the PR URL."""
+        owner_repo = parse_github_repo(repo_url)
+        if not owner_repo:
+            raise ValueError(f"Not a GitHub repository URL: {repo_url}")
+        owner, repo = owner_repo
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            repo_resp = await client.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers)
+            repo_resp.raise_for_status()
+            base_branch = repo_resp.json().get("default_branch", "main")
+
+            pr_resp = await client.post(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                headers=headers,
+                json={
+                    "title": title,
+                    "body": body,
+                    "head": branch,
+                    "base": base_branch,
+                },
+            )
+            if pr_resp.status_code == 422:
+                # A PR for this branch likely exists already — find and return it
+                existing = await client.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                    headers=headers,
+                    params={"head": f"{owner}:{branch}", "state": "open"},
+                )
+                existing.raise_for_status()
+                pulls = existing.json()
+                if pulls:
+                    return pulls[0]["html_url"]
+            pr_resp.raise_for_status()
+            return pr_resp.json()["html_url"]
 
     async def read_file(self, file_path: str) -> str:
         """Reads file content with UTF-8 encoding (and falls back to latin-1 if needed)."""

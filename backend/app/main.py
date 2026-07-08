@@ -1,4 +1,5 @@
 # main.py
+import asyncio
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,12 +7,14 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.models.database import init_db
+from app.services.monitor_service import monitoring_loop
 from app.api.regulations import router as regulations_router
 from app.api.projects import router as projects_router
 from app.api.analysis import router as analysis_router
 from app.api.reports import router as reports_router
 from app.api.system import router as system_router
 from app.api.websocket import router as websocket_router
+from app.api.webhooks import router as webhooks_router
 
 # Setup basic logging
 logging.basicConfig(
@@ -26,8 +29,10 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing compliance database...")
     init_db()
     logger.info("Database loaded successfully.")
+    monitor_task = asyncio.create_task(monitoring_loop())
     yield
     # Shutdown actions
+    monitor_task.cancel()
     logger.info("Shutting down Compliance Autopilot API...")
 
 app = FastAPI(
@@ -52,6 +57,7 @@ app.include_router(projects_router, prefix="/api")
 app.include_router(analysis_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 app.include_router(system_router, prefix="/api")
+app.include_router(webhooks_router, prefix="/api")
 app.include_router(websocket_router)  # Mounted directly for WebSocket endpoints
 
 @app.get("/")

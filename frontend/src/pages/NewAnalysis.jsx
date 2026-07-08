@@ -42,6 +42,17 @@ function NewAnalysis() {
   const [launchError, setLaunchError] = useState('');
   const isValidRepoUrl = GITHUB_URL_RE.test(repoUrl.trim());
 
+  // Frameworks for live scans: GDPR baseline, the country rule pack, and/or a
+  // pasted custom regulation (parsed into requirements by the Qwen agent).
+  const [useGdpr, setUseGdpr] = useState(true);
+  const [useRulePack, setUseRulePack] = useState(false);
+  const [useCustom, setUseCustom] = useState(false);
+  const [customRegName, setCustomRegName] = useState('');
+  const [customRegText, setCustomRegText] = useState('');
+  const customRegReady = customRegText.trim().length >= 80;
+  const frameworkCount = (useGdpr ? 1 : 0) + (useRulePack ? 1 : 0) + (useCustom ? 1 : 0);
+  const frameworksReady = frameworkCount > 0 && (!useCustom || customRegReady);
+
   const selectedIndustryData = INDUSTRIES.find(i => i.id === selectedIndustry);
   const selectedCountryData = selectedContinent
     ? COUNTRIES_BY_CONTINENT[selectedContinent]?.find(c => c.id === selectedCountry)
@@ -66,7 +77,7 @@ function NewAnalysis() {
   const canProceed = () => {
     if (step === 1) return !!selectedIndustry;
     if (step === 2) return !!selectedCountry;
-    if (step === 3) return scanMode === 'repo' ? isValidRepoUrl : !!selectedCodebase;
+    if (step === 3) return scanMode === 'repo' ? (isValidRepoUrl && frameworksReady) : !!selectedCodebase;
     return true;
   };
 
@@ -101,13 +112,36 @@ function NewAnalysis() {
     setLaunchError('');
 
     if (scanMode === 'repo') {
-      // Live scan: seed a regulation, register the project, kick off the real
-      // Qwen pipeline, then hand off to the analysis view which streams progress.
+      // Live scan: seed the selected regulations, register the project, kick off
+      // the real Qwen pipeline, then hand off to the analysis view which streams
+      // progress. Multiple frameworks run as sequential scans of the same repo.
       try {
-        const reg = await api.loadTemplate(0);
+        const regulationIds = [];
+        if (useGdpr) {
+          const reg = await api.loadTemplate(0);
+          regulationIds.push(reg.id);
+        }
+        if (useRulePack) {
+          const reg = await api.createRegulationFromRulePack(selectedIndustry, selectedCountry);
+          regulationIds.push(reg.id);
+        }
+        if (useCustom) {
+          const reg = await api.createRegulation({
+            name: customRegName.trim() || 'Custom Regulation',
+            source: 'Custom',
+            full_text: customRegText.trim(),
+          });
+          regulationIds.push(reg.id);
+        }
+
         const project = await api.createProject({ name: repoName(), repo_url: repoUrl.trim() });
-        const analysis = await api.startAnalysis({ project_id: project.id, regulation_id: reg.id });
-        navigate(`/analysis/${analysis.id}`);
+        if (regulationIds.length > 1) {
+          const analyses = await api.startMultiAnalysis(project.id, regulationIds);
+          navigate(`/analysis/${analyses[0].id}`);
+        } else {
+          const analysis = await api.startAnalysis({ project_id: project.id, regulation_id: regulationIds[0] });
+          navigate(`/analysis/${analysis.id}`);
+        }
       } catch (err) {
         console.error('Live scan failed to start:', err);
         setLaunchError('Could not start the live scan. Check that the backend is running and the repository URL is a public GitHub repo.');
@@ -460,6 +494,73 @@ function NewAnalysis() {
                   remediation — streaming progress as it goes. Use a small public repo
                   for the fastest scan.
                 </p>
+
+                {/* Framework selection */}
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', margin: '24px 0 10px' }}>
+                  Frameworks to Scan Against
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {[
+                    { id: 'gdpr', checked: useGdpr, toggle: () => setUseGdpr(v => !v), label: 'GDPR baseline', detail: 'Article 5 — principles for processing personal data' },
+                    { id: 'pack', checked: useRulePack, toggle: () => setUseRulePack(v => !v), label: regulations?.framework || 'Country rule pack', detail: `${regulations?.authority || 'Regulatory authority'} · ${selectedCountryData?.label || 'selected country'}` },
+                    { id: 'custom', checked: useCustom, toggle: () => setUseCustom(v => !v), label: 'Custom regulation', detail: 'Paste any regulation or internal policy — the agent parses it into requirements' },
+                  ].map(fw => (
+                    <div
+                      key={fw.id}
+                      onClick={fw.toggle}
+                      style={{
+                        padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
+                        border: '1px solid', display: 'flex', alignItems: 'center', gap: '12px',
+                        borderColor: fw.checked ? 'var(--accent-blue)' : 'var(--border-primary)',
+                        background: fw.checked ? 'rgba(88,166,255,0.06)' : 'rgba(255,255,255,0.02)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{
+                        width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                        border: '1px solid', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderColor: fw.checked ? 'var(--accent-blue)' : 'var(--border-primary)',
+                        background: fw.checked ? 'var(--accent-blue)' : 'transparent',
+                      }}>
+                        {fw.checked && <CheckCircle size={12} color="#000" />}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: fw.checked ? '600' : '500', color: fw.checked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{fw.label}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{fw.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {useCustom && (
+                  <div className="fade-in" style={{ marginTop: '14px' }}>
+                    <input
+                      type="text"
+                      value={customRegName}
+                      onChange={e => setCustomRegName(e.target.value)}
+                      placeholder="Regulation name (e.g. Internal Data Handling Policy v3)"
+                      style={{ width: '100%', padding: '12px 14px', marginBottom: '10px', borderRadius: '10px', border: '1px solid var(--border-primary)', background: 'rgba(255,255,255,0.02)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }}
+                    />
+                    <textarea
+                      value={customRegText}
+                      onChange={e => setCustomRegText(e.target.value)}
+                      placeholder="Paste the regulation or policy text here (at least a few sentences). The RegulationParser agent extracts structured technical requirements from it with qwen3.7-max."
+                      rows={6}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid', borderColor: customRegText && !customRegReady ? 'var(--status-partial)' : 'var(--border-primary)', background: 'rgba(255,255,255,0.02)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.5' }}
+                    />
+                    {customRegText && !customRegReady && (
+                      <p style={{ fontSize: '12px', color: 'var(--status-partial)', marginTop: '6px' }}>
+                        Add a bit more text ({customRegText.trim().length}/80 characters) so the parser has enough to work with.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {!frameworksReady && frameworkCount === 0 && (
+                  <p style={{ fontSize: '12px', color: 'var(--status-non-compliant)', marginTop: '10px' }}>
+                    Select at least one framework to scan against.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -485,7 +586,11 @@ function NewAnalysis() {
                 { label: 'Authority', value: regulations?.authority || '—' },
                 { label: 'Source Updated', value: regulations?.lastUpdated || '—' },
                 ...(scanMode === 'repo'
-                  ? [{ label: 'Repository', value: <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{repoName()}</span> }, { label: 'Mode', value: '🔴 Live scan' }]
+                  ? [
+                      { label: 'Repository', value: <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{repoName()}</span> },
+                      { label: 'Frameworks', value: `${frameworkCount} selected${frameworkCount > 1 ? ' (multi-scan)' : ''}` },
+                      { label: 'Mode', value: '🔴 Live scan' },
+                    ]
                   : [{ label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` }, { label: 'Language', value: selectedCodebaseData?.language }]),
               ].map((row, i, arr) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < arr.length - 1 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>

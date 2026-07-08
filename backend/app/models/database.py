@@ -46,6 +46,9 @@ class Project(Base):
     repo_path = Column(String, nullable=True)
     language = Column(String, default="Python")
     status = Column(String, default="active")
+    monitor_enabled = Column(Integer, default=0)  # 0/1 flag (SQLite-friendly bool)
+    monitor_interval_minutes = Column(Integer, default=60)
+    last_monitor_run = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     analyses = relationship("Analysis", back_populates="project", cascade="all, delete-orphan")
@@ -185,3 +188,6 @@ def init_db():
         _ensure_sqlite_column("analyses", "remediation_approved_at", "remediation_approved_at DATETIME")
         _ensure_sqlite_column("analyses", "remediation_approval_note", "remediation_approval_note TEXT")
         _ensure_sqlite_column("compliance_gaps", "agent_name", "agent_name VARCHAR DEFAULT 'GapDetector'")
+        _ensure_sqlite_column("projects", "monitor_enabled", "monitor_enabled INTEGER DEFAULT 0")
+        _ensure_sqlite_column("projects", "monitor_interval_minutes", "monitor_interval_minutes INTEGER DEFAULT 60")
+        _ensure_sqlite_column("projects", "last_monitor_run", "last_monitor_run DATETIME")

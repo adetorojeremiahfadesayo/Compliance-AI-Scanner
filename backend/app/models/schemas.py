@@ -59,8 +59,15 @@ class ProjectResponse(ProjectBase):
     repo_path: Optional[str] = None
     language: str
     status: str
+    monitor_enabled: bool = False
+    monitor_interval_minutes: int = 60
+    last_monitor_run: Optional[datetime] = None
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+class MonitoringUpdate(BaseModel):
+    enabled: bool
+    interval_minutes: int = Field(default=60, ge=5, le=10080)
 
 # Compliance Gap Schemas
 class ComplianceGapBase(BaseModel):
@@ -146,6 +153,16 @@ class AnalysisBase(BaseModel):
 
 class AnalysisCreate(AnalysisBase):
     pass
+
+class MultiAnalysisCreate(BaseModel):
+    project_id: int
+    regulation_ids: List[int] = Field(min_length=1, max_length=5)
+
+class FixPrResponse(BaseModel):
+    status: str  # created, failed
+    branch: Optional[str] = None
+    pr_url: Optional[str] = None
+    message: str
 
 class AnalysisResponse(AnalysisBase):
     id: int

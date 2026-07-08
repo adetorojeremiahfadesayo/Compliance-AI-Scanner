@@ -32,6 +32,24 @@ export const api = {
     return res.json();
   },
 
+  async createRegulation(data) {
+    const res = await fetch(`${API_BASE}/regulations/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Failed to create custom regulation");
+    return res.json();
+  },
+
+  async createRegulationFromRulePack(industry, country) {
+    const res = await fetch(`${API_BASE}/regulations/from-rule-pack?industry=${encodeURIComponent(industry)}&country=${encodeURIComponent(country)}`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error("Failed to load rule pack regulation");
+    return res.json();
+  },
+
   // Projects API
   async getProjects() {
     const res = await fetch(`${API_BASE}/projects`);
@@ -49,6 +67,16 @@ export const api = {
     return res.json();
   },
 
+  async setMonitoring(projectId, enabled, intervalMinutes = 60) {
+    const res = await fetch(`${API_BASE}/projects/${projectId}/monitoring`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled, interval_minutes: intervalMinutes })
+    });
+    if (!res.ok) throw new Error("Failed to update monitoring settings");
+    return res.json();
+  },
+
   // Analysis API
   async startAnalysis(data) {
     const res = await fetch(`${API_BASE}/analysis`, {
@@ -58,6 +86,25 @@ export const api = {
     });
     if (!res.ok) throw new Error("Failed to launch compliance scan");
     return res.json();
+  },
+
+  async startMultiAnalysis(projectId, regulationIds) {
+    const res = await fetch(`${API_BASE}/analysis/multi`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, regulation_ids: regulationIds })
+    });
+    if (!res.ok) throw new Error("Failed to launch multi-framework scan");
+    return res.json();
+  },
+
+  async createFixPr(analysisId) {
+    const res = await fetch(`${API_BASE}/analysis/${analysisId}/create-fix-pr`, {
+      method: 'POST'
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || "Failed to create fix PR");
+    return body;
   },
 
   async getAnalyses() {

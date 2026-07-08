@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, Loader2, UserCheck, Activity, Globe, Building2 } from 'lucide-react';
+import { ArrowRight, Bot, Loader2, UserCheck, Activity, Globe, Building2, GitPullRequest, Radar } from 'lucide-react';
 import ComplianceGauge from '../components/ComplianceGauge';
 import GapMatrix from '../components/GapMatrix';
 import AgentTimeline from '../components/AgentTimeline';
@@ -32,6 +32,9 @@ function AnalysisView() {
   const [showModal, setShowModal] = useState(false);
   const [demoMeta, setDemoMeta] = useState(null);
   const [offlineMode, setOfflineMode] = useState(false);
+  const [creatingPr, setCreatingPr] = useState(false);
+  const [prResult, setPrResult] = useState(null);
+  const [togglingMonitor, setTogglingMonitor] = useState(false);
 
   const stages = ['pending', 'parsing', 'scanning', 'detecting', 'remediating', 'complete'];
 
@@ -118,6 +121,39 @@ function AnalysisView() {
     finally { setApproving(false); }
   };
 
+  const handleCreateFixPr = async () => {
+    setCreatingPr(true);
+    setPrResult(null);
+    try {
+      const result = await api.createFixPr(id);
+      setPrResult(result);
+      setAuditLogs(prev => [...prev, {
+        agent_name: 'RemediationEngine',
+        action: result.status === 'created' ? 'fix_pr_created' : 'fix_pr_failed',
+        details: result.pr_url || result.message,
+        timestamp: new Date().toISOString(),
+      }]);
+    } catch (err) {
+      setPrResult({ status: 'failed', message: err.message });
+    } finally {
+      setCreatingPr(false);
+    }
+  };
+
+  const handleToggleMonitoring = async () => {
+    const project = analysis?.project;
+    if (!project?.id) return;
+    setTogglingMonitor(true);
+    try {
+      const updated = await api.setMonitoring(project.id, !project.monitor_enabled, project.monitor_interval_minutes || 60);
+      setAnalysis(prev => prev ? { ...prev, project: updated } : prev);
+    } catch (err) {
+      alert(`Could not update monitoring: ${err.message}`);
+    } finally {
+      setTogglingMonitor(false);
+    }
+  };
+
   const handleRegressionCheck = async () => {
     setCheckingRegression(true);
     try {
@@ -189,7 +225,19 @@ function AnalysisView() {
                 {approving ? 'Approving…' : 'Approve Remediation'}
               </button>
             ) : (
-              <span className="badge badge-compliant"><UserCheck size={12} /> Human Approved</span>
+              <>
+                <span className="badge badge-compliant"><UserCheck size={12} /> Human Approved</span>
+                <button onClick={handleCreateFixPr} disabled={creatingPr} className="btn-secondary" style={{ fontSize: '13px', padding: '10px 18px' }}>
+                  {creatingPr ? <Loader2 size={15} className="status-dot-pulsing" /> : <GitPullRequest size={15} />}
+                  {creatingPr ? 'Opening PR…' : 'Create Fix PR'}
+                </button>
+              </>
+            )}
+            {analysis?.project?.repo_url && (
+              <button onClick={handleToggleMonitoring} disabled={togglingMonitor} className="btn-secondary" style={{ fontSize: '13px', padding: '10px 18px' }}>
+                {togglingMonitor ? <Loader2 size={15} className="status-dot-pulsing" /> : <Radar size={15} />}
+                {analysis.project.monitor_enabled ? 'Monitoring: On' : 'Monitoring: Off'}
+              </button>
             )}
             <button onClick={() => navigate(`/report/${id}`)} className="btn-primary" style={{ fontSize: '13px', padding: '10px 18px' }}>
               <span>Full Report</span><ArrowRight size={15} />
@@ -197,6 +245,24 @@ function AnalysisView() {
           </div>
         )}
       </div>
+
+      {/* Fix PR result */}
+      {prResult && (
+        <div style={{
+          background: 'var(--bg-secondary)',
+          border: `1px solid ${prResult.status === 'created' ? 'rgba(63,185,80,0.35)' : 'rgba(248,81,73,0.35)'}`,
+          borderRadius: 'var(--radius-md)', padding: '14px 18px', marginBottom: '28px',
+          display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+        }}>
+          <GitPullRequest size={16} color={prResult.status === 'created' ? 'var(--status-compliant)' : 'var(--status-non-compliant)'} />
+          <span style={{ fontSize: '13px' }}>{prResult.message}</span>
+          {prResult.pr_url && (
+            <a href={prResult.pr_url} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: 'var(--accent-blue)', fontWeight: '600' }}>
+              View pull request
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Context Chips */}
       {(analysis?.framework || analysis?.authority) && (
