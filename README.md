@@ -6,10 +6,10 @@ The project is built for the **Qwen Cloud Hackathon Track 4: Autopilot Agent**.
 
 ## What It Does
 
-1. Parses regulation text into structured requirements with `qwen-max`.
+1. Parses regulation text into structured requirements with `qwen3.7-max`.
 2. Scans repositories for PII fields, data storage, logging leaks, deletion logic, consent handling, encryption usage, API endpoints, and third-party sharing.
-3. Uses `qwen-plus` to synthesize codebase data-flow and control summaries.
-4. Uses `qwen-max` to map regulation requirements to source evidence.
+3. Uses `qwen3.7-plus` to synthesize codebase data-flow and control summaries.
+4. Uses `qwen3.7-max` to map regulation requirements to source evidence.
 5. Generates remediation plans and privacy policy clauses.
 6. Streams agent progress over WebSockets.
 7. Adds a human approval checkpoint before remediation output is marked approved.
@@ -27,12 +27,12 @@ High-level pipeline:
 
 ```mermaid
 flowchart LR
-    Regulation["Regulation Template"] --> Parser["Regulation Parser<br/>qwen-max"]
+    Regulation["Regulation Template"] --> Parser["Regulation Parser<br/>qwen3.7-max"]
     Repo["GitHub Repository"] --> Scanner["Static Scanner"]
-    Scanner --> Analyzer["Codebase Analyzer<br/>qwen-plus"]
-    Parser --> GapDetector["Gap Detector<br/>qwen-max"]
+    Scanner --> Analyzer["Codebase Analyzer<br/>qwen3.7-plus"]
+    Parser --> GapDetector["Gap Detector<br/>qwen3.7-max"]
     Analyzer --> GapDetector
-    GapDetector --> Remediation["Remediation Engine<br/>qwen-max"]
+    GapDetector --> Remediation["Remediation Engine<br/>qwen3.7-max"]
     Remediation --> Review["Human Approval"]
     Review --> Reports["Audit Reports"]
 ```
@@ -41,7 +41,7 @@ flowchart LR
 
 - Backend: Python, FastAPI, SQLAlchemy, Pydantic v2
 - AI: Qwen Cloud via OpenAI-compatible API
-- Models: `qwen-max`, `qwen-plus`
+- Models: `qwen3.7-max`, `qwen3.7-plus`, `qwen3.6-flash`
 - Database: SQLite locally, PostgreSQL-compatible design for production
 - Frontend: React, Vite, React Router, Recharts, Lucide React
 - Deployment: Docker and Docker Compose

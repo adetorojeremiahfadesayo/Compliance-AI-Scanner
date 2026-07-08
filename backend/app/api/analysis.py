@@ -14,6 +14,9 @@ from app.agents.orchestrator import orchestrator
 from app.agents.monitor_agent import monitor_agent
 from app.api.websocket import manager
 from app.services.demo_catalog import get_demo_scan
+from app.config import settings
+
+DEMO_MODEL_NAMES = f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}"
 
 logger = logging.getLogger("app.api.analysis")
 router = APIRouter(prefix="/analysis", tags=["analysis"])
@@ -177,7 +180,7 @@ def create_demo_analysis(db: Session = Depends(get_db)):
         status="complete",
         overall_score=16.7,
         model_provider="Qwen Cloud",
-        model_names="qwen-max, qwen-plus",
+        model_names=DEMO_MODEL_NAMES,
         token_usage='{"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "mode": "seeded_demo"}',
         remediation_approval_status="pending_review",
         started_at=datetime.utcnow(),
@@ -295,7 +298,7 @@ def create_industry_demo_analysis(codebase_id: str, country_id: str = "de", db: 
         status="complete",
         overall_score=float(demo["score"]),
         model_provider="Qwen Cloud",
-        model_names="qwen-max, qwen-plus",
+        model_names=DEMO_MODEL_NAMES,
         token_usage=json.dumps({
             "input_tokens": 0,
             "output_tokens": 0,

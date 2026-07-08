@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from app.config import settings
 from app.main import app
 from app.models.database import (
     Base,
@@ -102,7 +103,7 @@ def create_analysis(SessionLocal, project_id, regulation_id, gaps):
         status="complete",
         overall_score=50.0,
         model_provider="Qwen Cloud",
-        model_names="qwen-max, qwen-plus",
+        model_names=f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}",
         token_usage='{"input_tokens": 25, "output_tokens": 10, "total_tokens": 35}',
     )
     db.add(analysis)
@@ -126,9 +127,9 @@ def test_deployment_proof_exposes_alibaba_and_qwen_metadata(client):
     payload = response.json()
     assert payload["deployment_provider"] == "Alibaba Cloud"
     assert payload["qwen_base_url"].endswith("/compatible-mode/v1")
-    assert "qwen3.7-max" in payload["models"]
-    assert "qwen3.7-plus" in payload["models"]
-    assert "qwen3.6-flash" in payload["models"]
+    assert settings.QWEN_MAX_MODEL in payload["models"]
+    assert settings.QWEN_PLUS_MODEL in payload["models"]
+    assert settings.QWEN_TURBO_MODEL in payload["models"]
     assert "api_key_configured" in payload
 
 
