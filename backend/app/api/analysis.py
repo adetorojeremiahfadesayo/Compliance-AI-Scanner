@@ -73,6 +73,32 @@ def _display_repo_path(repo_path: str, file_path: str):
     except ValueError:
         return os.path.basename(file_path)
 
+def _get_or_create_project(db: Session, name: str, **defaults) -> Project:
+    """Reuses a project by name so repeated demo runs don't spawn duplicate rows."""
+    project = db.query(Project).filter(Project.name == name).first()
+    if project:
+        return project
+    project = Project(name=name, **defaults)
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    return project
+
+def _get_or_create_regulation(db: Session, name: str, version: str, **defaults):
+    """Reuses a regulation by (name, version). Returns (regulation, created)."""
+    regulation = (
+        db.query(Regulation)
+        .filter(Regulation.name == name, Regulation.version == version)
+        .first()
+    )
+    if regulation:
+        return regulation, False
+    regulation = Regulation(name=name, version=version, **defaults)
+    db.add(regulation)
+    db.commit()
+    db.refresh(regulation)
+    return regulation, True
+
 @router.post("/", response_model=AnalysisResponse)
 def start_analysis(req: AnalysisCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Initiates a compliance scan for a codebase against a regulation in a background thread."""
@@ -116,63 +142,69 @@ def list_analyses(db: Session = Depends(get_db)):
 def create_demo_analysis(db: Session = Depends(get_db)):
     """Creates a complete sample scan for hackathon demos without cloning a remote repository."""
     repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "demo-repo"))
-    project = Project(
+    project = _get_or_create_project(
+        db,
         name="Demo Flask Compliance App",
         repo_url=None,
         repo_path=repo_path,
         language="Python",
-        status="active"
+        status="active",
     )
-    regulation = Regulation(
+    regulation, reg_created = _get_or_create_regulation(
+        db,
         name="GDPR Article 17 & 32 Demo Audit",
-        source="GDPR",
         version="2016/679",
+        source="GDPR",
         full_text=(
             "Article 17 grants users the right to erasure. Article 32 requires appropriate "
             "security controls including password hashing, encryption, and protection against PII leakage."
-        )
+        ),
     )
-    db.add_all([project, regulation])
-    db.commit()
-    db.refresh(project)
-    db.refresh(regulation)
 
-    requirements = [
-        Requirement(
-            regulation_id=regulation.id,
-            article_reference="Article 32(1)(a)",
-            title="Password & PII Encryption",
-            description="Passwords must never be stored in plaintext and sensitive data should be protected at rest.",
-            technical_requirement="Hash passwords with bcrypt or argon2 and encrypt sensitive profile fields.",
-            severity="critical",
-            category="security",
-            verification_criteria="Check user model and registration route for password hashing and encryption controls."
-        ),
-        Requirement(
-            regulation_id=regulation.id,
-            article_reference="Article 32(1)(d)",
-            title="Logging Restrictions for Sensitive Data",
-            description="Logs must not expose personal data, passwords, tokens, or registration payloads.",
-            technical_requirement="Remove raw PII logging and add safe masking helpers.",
-            severity="high",
-            category="security",
-            verification_criteria="Search logging statements for PII fields."
-        ),
-        Requirement(
-            regulation_id=regulation.id,
-            article_reference="Article 17(1)",
-            title="Automated Data Erasure Endpoint",
-            description="Users must be able to request erasure of personal data without manual admin work.",
-            technical_requirement="Add a DELETE endpoint that purges or anonymizes user profile data.",
-            severity="critical",
-            category="deletion",
-            verification_criteria="Check routes for DELETE profile/account handlers."
-        ),
-    ]
-    db.add_all(requirements)
-    db.commit()
-    for req in requirements:
-        db.refresh(req)
+    if reg_created:
+        requirements = [
+            Requirement(
+                regulation_id=regulation.id,
+                article_reference="Article 32(1)(a)",
+                title="Password & PII Encryption",
+                description="Passwords must never be stored in plaintext and sensitive data should be protected at rest.",
+                technical_requirement="Hash passwords with bcrypt or argon2 and encrypt sensitive profile fields.",
+                severity="critical",
+                category="security",
+                verification_criteria="Check user model and registration route for password hashing and encryption controls."
+            ),
+            Requirement(
+                regulation_id=regulation.id,
+                article_reference="Article 32(1)(d)",
+                title="Logging Restrictions for Sensitive Data",
+                description="Logs must not expose personal data, passwords, tokens, or registration payloads.",
+                technical_requirement="Remove raw PII logging and add safe masking helpers.",
+                severity="high",
+                category="security",
+                verification_criteria="Search logging statements for PII fields."
+            ),
+            Requirement(
+                regulation_id=regulation.id,
+                article_reference="Article 17(1)",
+                title="Automated Data Erasure Endpoint",
+                description="Users must be able to request erasure of personal data without manual admin work.",
+                technical_requirement="Add a DELETE endpoint that purges or anonymizes user profile data.",
+                severity="critical",
+                category="deletion",
+                verification_criteria="Check routes for DELETE profile/account handlers."
+            ),
+        ]
+        db.add_all(requirements)
+        db.commit()
+        for req in requirements:
+            db.refresh(req)
+    else:
+        requirements = (
+            db.query(Requirement)
+            .filter(Requirement.regulation_id == regulation.id)
+            .order_by(Requirement.id)
+            .all()
+        )
 
     analysis = Analysis(
         project_id=project.id,
@@ -242,44 +274,50 @@ def create_industry_demo_analysis(codebase_id: str, country_id: str = "de", db: 
     if not demo:
         raise HTTPException(status_code=404, detail="Demo codebase or country rule pack not found.")
 
-    project = Project(
+    project = _get_or_create_project(
+        db,
         name=demo["project"]["name"],
         repo_url=None,
         repo_path=demo["project"]["repo_path"],
         language=demo["project"]["language"],
         status="active",
     )
-    regulation = Regulation(
+    regulation, reg_created = _get_or_create_regulation(
+        db,
         name=demo["regulation"]["framework"],
-        source=demo["regulation"]["authority"],
         version=demo["regulation"]["last_updated"],
+        source=demo["regulation"]["authority"],
         full_text=(
             f"{demo['industry_label']} source-backed rule pack for "
             f"{demo['country_label']}: {demo['regulation']['framework']}. "
             f"Source: {demo['regulation']['source_url']}"
         ),
     )
-    db.add_all([project, regulation])
-    db.commit()
-    db.refresh(project)
-    db.refresh(regulation)
 
-    requirements = []
-    for req in demo["regulation"]["requirements"]:
-        requirements.append(Requirement(
-            regulation_id=regulation.id,
-            article_reference=req["ref"],
-            title=req["title"],
-            description=req["description"],
-            technical_requirement=f"Implement and document controls for {req['title'].lower()}.",
-            severity=req["severity"],
-            category=req["category"],
-            verification_criteria=f"Inspect code paths and configuration for {req['category']} controls.",
-        ))
-    db.add_all(requirements)
-    db.commit()
-    for req in requirements:
-        db.refresh(req)
+    if reg_created:
+        requirements = []
+        for req in demo["regulation"]["requirements"]:
+            requirements.append(Requirement(
+                regulation_id=regulation.id,
+                article_reference=req["ref"],
+                title=req["title"],
+                description=req["description"],
+                technical_requirement=f"Implement and document controls for {req['title'].lower()}.",
+                severity=req["severity"],
+                category=req["category"],
+                verification_criteria=f"Inspect code paths and configuration for {req['category']} controls.",
+            ))
+        db.add_all(requirements)
+        db.commit()
+        for req in requirements:
+            db.refresh(req)
+    else:
+        requirements = (
+            db.query(Requirement)
+            .filter(Requirement.regulation_id == regulation.id)
+            .order_by(Requirement.id)
+            .all()
+        )
 
     demo_metadata = {
         "codebase_id": demo["codebase_id"],

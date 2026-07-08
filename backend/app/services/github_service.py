@@ -44,6 +44,35 @@ class GitHubService:
             logger.error(f"Exception during git clone: {e}")
             raise
 
+    async def sync_repo(self, repo_url: str, target_dir: str) -> str:
+        """Ensures target_dir holds a fresh checkout of repo_url.
+
+        Fast-forward pulls an existing clone; on any failure (or if the directory
+        is not a git clone) it falls back to a clean shallow clone.
+        """
+        git_dir = os.path.join(target_dir, ".git")
+        if os.path.isdir(git_dir):
+            logger.info(f"Existing clone found at {target_dir}, pulling latest.")
+            try:
+                await self._run_git(["-C", target_dir, "pull", "--ff-only"])
+                return target_dir
+            except Exception as pull_err:
+                logger.warning(f"git pull failed ({pull_err}); re-cloning {repo_url}.")
+
+        return await self.clone_repo(repo_url, target_dir)
+
+    async def _run_git(self, args: List[str]) -> str:
+        """Runs a git subcommand, raising RuntimeError on non-zero exit."""
+        process = await asyncio.create_subprocess_exec(
+            "git", *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
+        if process.returncode != 0:
+            raise RuntimeError(stderr.decode().strip() or "git command failed")
+        return stdout.decode().strip()
+
     async def list_code_files(self, repo_path: str, extensions: List[str] = None) -> List[str]:
         """Walks directory tree, returns list of relative paths for code files."""
         if extensions is None:

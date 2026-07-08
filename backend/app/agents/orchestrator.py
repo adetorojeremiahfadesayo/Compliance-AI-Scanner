@@ -19,6 +19,29 @@ from app.agents.remediation_engine import remediation_engine_agent
 
 logger = logging.getLogger("app.agents.orchestrator")
 
+# Severity weighting for the compliance score. A critical requirement counts four
+# times as much as a low one so a single critical gap moves the needle more than a
+# handful of low-priority ones.
+SEVERITY_WEIGHTS = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+STATUS_FACTORS = {"compliant": 1.0, "partial": 0.5, "non_compliant": 0.0}
+
+
+def compute_weighted_score(items) -> float:
+    """Computes a 0-100 compliance score from (severity, status) pairs.
+
+    Each requirement contributes in proportion to its severity weight, scaled by a
+    status factor (compliant=1.0, partial=0.5, non_compliant=0.0). An empty set
+    scores 100 (nothing to fail).
+    """
+    total_weight = 0.0
+    weighted = 0.0
+    for severity, status in items:
+        weight = SEVERITY_WEIGHTS.get(severity, 2)
+        total_weight += weight
+        weighted += weight * STATUS_FACTORS.get(status, 0.0)
+    return (weighted / total_weight * 100.0) if total_weight else 100.0
+
+
 class AnalysisOrchestrator:
     """Manages the lifecycle of a codebase compliance scan using specialized agents."""
 
@@ -70,10 +93,14 @@ class AnalysisOrchestrator:
             db.close()
             return
 
+        # Snapshot cumulative token usage so we can store the per-analysis delta.
+        # qwen_client is a process-lifetime singleton that accumulates forever.
+        tokens_at_start = qwen_client.get_token_usage()
+
         try:
             analysis.started_at = datetime.utcnow()
             db.commit()
-            
+
             await self.log_audit(db, analysis_id, "Orchestrator", "pipeline_started", "Compliance Autopilot pipeline initiated.")
             
             # ==========================================
@@ -115,14 +142,16 @@ class AnalysisOrchestrator:
             await self.update_status(db, analysis, "scanning", progress_callback, 30.0, "Cloning and scanning project repository...")
             project = analysis.project
             
-            # Create local target path for cloning if it is a URL
-            if project.repo_url and not project.repo_path:
-                repo_dir = os.path.join(os.path.expanduser("~"), ".compliance_autopilot", f"project_{project.id}")
-                await self.log_audit(db, analysis_id, "Orchestrator", "cloning_repo", f"Cloning {project.repo_url} to local drive.")
-                
-                # Clone repo
+            # Refresh remote repos on every scan so regression checks compare fresh
+            # code. Locally-bundled demo repos (repo_url is None) are never touched.
+            if project.repo_url:
+                repo_dir = project.repo_path or os.path.join(
+                    os.path.expanduser("~"), ".compliance_autopilot", f"project_{project.id}"
+                )
+                await self.log_audit(db, analysis_id, "Orchestrator", "syncing_repo", f"Syncing {project.repo_url} to local drive.")
+
                 try:
-                    await github_service.clone_repo(project.repo_url, repo_dir)
+                    await github_service.sync_repo(project.repo_url, repo_dir)
                     project.repo_path = repo_dir
                     db.commit()
                 except Exception as clone_err:
@@ -228,23 +257,26 @@ class AnalysisOrchestrator:
             # ==========================================
             # STAGE 5: CALCULATION & FINALIZE
             # ==========================================
-            # Simple scoring: compliant = 100, partial = 50, non_compliant = 0
-            total_gaps = len(active_gaps)
-            if total_gaps > 0:
-                total_score = sum(
-                    100 if g.status == "compliant" else (50 if g.status == "partial" else 0)
-                    for g in active_gaps
-                )
-                analysis.overall_score = float(total_score) / total_gaps
-            else:
-                analysis.overall_score = 100.0
+            # Severity-weighted scoring: each requirement contributes in proportion
+            # to its severity, scaled by how compliant the codebase is for it.
+            scored_items = [
+                ((g.requirement.severity if g.requirement else None) or g.priority or "medium", g.status)
+                for g in active_gaps
+            ]
+            analysis.overall_score = compute_weighted_score(scored_items)
 
             analysis.model_provider = "Qwen Cloud"
             analysis.model_names = ", ".join([
                 settings.QWEN_MAX_MODEL,
                 settings.QWEN_PLUS_MODEL
             ])
-            analysis.token_usage = json.dumps(qwen_client.get_token_usage())
+            # Store only the tokens this analysis consumed, not the process total.
+            tokens_now = qwen_client.get_token_usage()
+            token_delta = {
+                key: tokens_now.get(key, 0) - tokens_at_start.get(key, 0)
+                for key in tokens_now
+            }
+            analysis.token_usage = json.dumps(token_delta)
                 
             await self.log_audit(db, analysis_id, "Orchestrator", "pipeline_completed", f"Scan finished with score: {analysis.overall_score:.1f}%")
             await self.update_status(db, analysis, "complete", progress_callback, 100.0, "Compliance scan successfully completed!")

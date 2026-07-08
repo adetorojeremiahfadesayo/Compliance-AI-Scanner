@@ -42,8 +42,21 @@ class CodebaseAnalyzerAgent:
             except Exception as e:
                 logger.error(f"Failed to analyze file {rel_path}: {e}")
 
-        # 2. Package high-signal findings and send to Qwen-Plus for semantic synthesis
-        logger.info(f"Sending {len(static_findings)} high-signal file profiles to Qwen for semantic synthesis")
+        # 2. Rank findings by signal so large repos surface their highest-value files
+        # (PII fields weigh most, then data operations, then structural size) before
+        # we cap the list to keep the prompt within token limits.
+        def _signal(finding: Dict[str, Any]) -> int:
+            structure = finding.get("structure", {}) or {}
+            return (
+                len(finding.get("pii_fields", [])) * 3
+                + len(finding.get("data_operations", [])) * 2
+                + len(structure.get("functions", []))
+                + len(structure.get("classes", []))
+            )
+
+        static_findings.sort(key=_signal, reverse=True)
+        top_findings = static_findings[:15]
+        logger.info(f"Sending {len(top_findings)} of {len(static_findings)} high-signal file profiles to Qwen for semantic synthesis")
         
         system_prompt = (
             "You are a principal software architect and security auditor. You will receive a list of "
@@ -61,7 +74,7 @@ class CodebaseAnalyzerAgent:
 
         user_content = (
             f"Please analyze these codebase static findings:\n\n"
-            f"{static_findings[:15]}"  # cap file list size for safety
+            f"{top_findings}"
         )
 
         messages = [
