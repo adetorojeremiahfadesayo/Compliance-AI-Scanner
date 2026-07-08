@@ -1,7 +1,7 @@
 # schemas.py
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # Requirement Schemas
 class RequirementBase(BaseModel):
@@ -182,4 +182,4 @@ class AnalysisProgress(BaseModel):
     stage: str  # PARSING, SCANNING, DETECTING, REMEDIATING, COMPLETE, FAILED
     progress_pct: float
     message: str
-    timestamp: datetime = datetime.utcnow()
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

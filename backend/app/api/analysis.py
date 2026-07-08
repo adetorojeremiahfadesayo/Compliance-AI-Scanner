@@ -25,7 +25,7 @@ CODE_LOCATION_RE = re.compile(r"^(?P<path>.+?)(?::L(?P<start>\d+)(?:-L?(?P<end>\
 async def progress_broadcaster(progress: AnalysisProgress):
     """Callback to broadcast progress packets to WebSocket listeners."""
     logger.debug(f"Broadcasting websocket packet for analysis {progress.analysis_id}")
-    await manager.broadcast(progress.analysis_id, progress.model_dump())
+    await manager.broadcast(progress.analysis_id, progress.model_dump(mode="json"))
 
 def _parse_code_location(code_location: str):
     match = CODE_LOCATION_RE.match((code_location or "").strip())
