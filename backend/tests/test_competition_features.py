@@ -126,8 +126,9 @@ def test_deployment_proof_exposes_alibaba_and_qwen_metadata(client):
     payload = response.json()
     assert payload["deployment_provider"] == "Alibaba Cloud"
     assert payload["qwen_base_url"].endswith("/compatible-mode/v1")
-    assert "qwen-max" in payload["models"]
-    assert "qwen-plus" in payload["models"]
+    assert "qwen3.7-max" in payload["models"]
+    assert "qwen3.7-plus" in payload["models"]
+    assert "qwen3.6-flash" in payload["models"]
     assert "api_key_configured" in payload
 
 

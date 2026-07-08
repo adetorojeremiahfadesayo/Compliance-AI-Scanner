@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
@@ -28,6 +28,18 @@ function NewAnalysis() {
 
   // Filter codebases by industry
   const filteredCodebases = DEMO_CODEBASES.filter(cb => !selectedIndustry || cb.industry === selectedIndustry);
+
+  useEffect(() => {
+    if (!selectedIndustry) {
+      setSelectedCodebase(null);
+      return;
+    }
+
+    const matchingCodebases = DEMO_CODEBASES.filter(cb => cb.industry === selectedIndustry);
+    if (!matchingCodebases.some(cb => cb.id === selectedCodebase)) {
+      setSelectedCodebase(matchingCodebases[0]?.id || null);
+    }
+  }, [selectedIndustry, selectedCodebase]);
 
   const canProceed = () => {
     if (step === 1) return !!selectedIndustry;
