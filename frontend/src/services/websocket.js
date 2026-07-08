@@ -1,6 +1,8 @@
 // websocket.js
-const WS_HOST = window.location.hostname || 'localhost';
-const WS_BASE = `ws://${WS_HOST}:8000/ws/analysis`;
+// Same-origin by default (ws/wss matched to the page protocol), proxied to the
+// backend by Vite in dev and nginx in production. Override with VITE_WS_BASE.
+const WS_PROTO = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const WS_BASE = import.meta.env.VITE_WS_BASE || `${WS_PROTO}://${window.location.host}/ws/analysis`;
 
 export function connectToAnalysis(analysisId, onMessage, onClose) {
   let ws = null;

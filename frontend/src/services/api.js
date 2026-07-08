@@ -1,6 +1,8 @@
 // api.js
-const API_HOST = window.location.hostname || 'localhost';
-const API_BASE = `http://${API_HOST}:8000/api`;
+// Defaults to a same-origin relative path so the app works behind HTTPS and any
+// reverse proxy. In dev, Vite proxies /api to the backend (see vite.config.js);
+// in production, nginx proxies it. Override with VITE_API_BASE for split hosting.
+const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export const api = {
   // Regulations API
