@@ -20,6 +20,7 @@ frontend/.env.test.local
 frontend/.env.production.local
 
 # General
+.claude/
 .DS_Store
 Thumbs.db
 .idea/
