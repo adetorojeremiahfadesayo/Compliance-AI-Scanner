@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle, GitBranch, AlertCircle, Landmark, Ship, Clapperboard, Rocket } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
 import { api } from '../services/api';
+import { getPreScanCodebasePresentation } from '../utils/preScanPresentation';
 import ScanField from '../components/ScanField';
 import PageContext from '../components/PageContext';
 
@@ -396,8 +397,7 @@ function NewAnalysis() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {filteredCodebases.map(cb => {
                 const ind = INDUSTRIES.find(i => i.id === cb.industry);
-                const score = selectedCountry ? (cb.scoreByCountry?.[selectedCountry] ?? 45) : null;
-                const isPassing = score !== null && score >= 60;
+                const presentation = getPreScanCodebasePresentation(cb);
                 return (
                   <button
                     type="button"
@@ -415,24 +415,14 @@ function NewAnalysis() {
                           </span>
                         </div>
                         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>{cb.description}</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {cb.violations.slice(0, 3).map((v, i) => (
-                            <span key={i} style={{ fontSize: '11px', padding: '3px 9px', borderRadius: '999px', background: 'rgba(var(--risk-rgb),0.08)', border: '1px solid rgba(var(--risk-rgb),0.22)', color: 'var(--status-non-compliant)' }}>
-                              {v.length > 38 ? v.slice(0, 38) + '…' : v}
-                            </span>
-                          ))}
-                          {cb.violations.length > 3 && <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', padding: '3px 8px' }}>+{cb.violations.length - 3} more</span>}
+                        <div className="mono" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', color: 'var(--text-tertiary)', fontSize: '11px' }}>
+                          <span>{presentation.fileCount} {presentation.fileCount === 1 ? 'file' : 'files'}</span>
+                          <span>{presentation.linesOfCode} lines</span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                        {score !== null && (
-                          <div style={{ textAlign: 'right' }}>
-                            <div className="mono" style={{ fontSize: '22px', fontWeight: '500', color: isPassing ? 'var(--status-compliant)' : 'var(--status-non-compliant)', lineHeight: 1 }}>{score}%</div>
-                            <div className="label" style={{ marginTop: '4px' }}>est. score</div>
-                          </div>
-                        )}
-                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.language}</div>
-                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.linesOfCode} lines</div>
+                        <span className="badge badge-pending">{presentation.stateLabel}</span>
+                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{presentation.language}</div>
                       </div>
                     </div>
                   </button>
