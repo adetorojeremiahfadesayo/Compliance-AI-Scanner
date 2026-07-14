@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Code, Bot, UserCheck } from 'lucide-react';
+import { Download, FileText, Code, Bot, UserCheck } from 'lucide-react';
 import RequirementCard from '../components/RequirementCard';
 import CodeViewer from '../components/CodeViewer';
 import { api } from '../services/api';
+import ConfidenceInstrument from '../components/ConfidenceInstrument';
+import PageContext from '../components/PageContext';
+import OperationalPanel from '../components/OperationalPanel';
+import ScanField from '../components/ScanField';
 
 const MOCK_CODE = `import os
 import logging
@@ -129,6 +133,7 @@ function ReportView() {
   const [analysis, setAnalysis] = useState(null);
   const [gaps, setGaps] = useState([]);
   const [inspector, setInspector] = useState(null);
+  const [selectedFindingId, setSelectedFindingId] = useState(null);
 
   useEffect(() => {
     async function loadReport() {
@@ -188,72 +193,53 @@ function ReportView() {
     }
   };
 
+  const selectedGap = gaps.find((gap) => gap.id === selectedFindingId) || gaps[0];
+  const activeLine = Number(selectedGap?.code_location?.match(/L(\d+)/)?.[1]) || null;
+
   return (
-    <div className="fade-in">
-      {/* Back navigation */}
-      <button 
-        onClick={() => navigate(`/analysis/${id}`)}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px' }}
-      >
-        <ArrowLeft size={16} /> Back to Scan Trace
-      </button>
+    <div className="confidence-report">
+      <PageContext
+        title="Confidence Report"
+        description={`${analysis?.project?.name || 'Repository'} compliance evidence and remediation record.`}
+        status={<span className={`badge ${analysis?.remediation_approval_status === 'approved' ? 'badge-compliant' : 'badge-partial'}`}><UserCheck size={12} /> {analysis?.remediation_approval_status || 'pending_review'}</span>}
+        backAction={{ label: 'Back to Scan Confidence', onClick: () => navigate(`/analysis/${id}`) }}
+        actions={(
+          <>
+            <button type="button" onClick={() => handleDownload('report')} className="btn-secondary compact-action"><Download size={15} /> Export Markdown</button>
+            <button type="button" onClick={() => handleDownload('remediation')} className="btn-primary compact-action"><FileText size={15} /> Remediation Guide</button>
+            <button type="button" onClick={() => handleDownload('patch')} className="btn-secondary compact-action"><Download size={15} /> Patch Diff</button>
+          </>
+        )}
+      />
 
-      {/* Header Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-        <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>Compliance Audit Report</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Comprehensive analysis results for project: <strong style={{ color: 'var(--text-primary)' }}>{analysis?.project?.name}</strong>
-          </p>
+      <section className="confidence-stage confidence-stage--report">
+        <ConfidenceInstrument
+          score={analysis?.overall_score || 0}
+          status="complete"
+          progress={100}
+          meta={[
+            { label: 'Project', value: analysis?.project?.name },
+            { label: 'Regulation', value: analysis?.regulation?.name },
+            { label: 'Provider', value: analysis?.model_provider || 'Qwen Cloud' },
+            { label: 'Models', value: analysis?.model_names || 'qwen-max, qwen-plus' },
+          ]}
+        />
+        <div className="confidence-stage__field">
+          <ScanField mode="evidence" findings={gaps} focusId={selectedGap ? `finding-${selectedGap.id}` : null} />
+          <div className="confidence-stage__field-label"><span>Finding topology</span><strong>{selectedGap?.requirement?.article_reference || `${gaps.length} findings`}</strong></div>
         </div>
+      </section>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => handleDownload('report')} className="btn-secondary">
-            <Download size={16} /> Export Markdown
-          </button>
-          <button onClick={() => handleDownload('remediation')} className="btn-primary">
-            <FileText size={16} /> Remediation Guide
-          </button>
-          <button onClick={() => handleDownload('patch')} className="btn-secondary">
-            <Download size={16} /> Patch Diff
-          </button>
-        </div>
-      </div>
+      <section className="report-context-strip">
+        <div><Bot size={15} /><span>Provider</span><strong>{analysis?.model_provider || 'Qwen Cloud'}</strong></div>
+        <div><Code size={15} /><span>Models</span><strong className="mono">{analysis?.model_names || 'qwen-max, qwen-plus'}</strong></div>
+        <div><UserCheck size={15} /><span>Review</span><strong>{analysis?.remediation_approval_status || 'pending_review'}</strong></div>
+        <div><span>Critical</span><strong className="is-risk">{gaps.filter((gap) => gap.priority === 'critical').length}</strong></div>
+      </section>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '16px',
-        marginBottom: '32px'
-      }}>
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Bot size={18} color="var(--accent-purple)" />
-          <div>
-            <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)' }}>AI Provider</span>
-            <span style={{ fontWeight: '700' }}>{analysis?.model_provider || 'Qwen Cloud'}</span>
-          </div>
-        </div>
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)' }}>Models Used</span>
-          <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{analysis?.model_names || 'qwen-max, qwen-plus'}</span>
-        </div>
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <UserCheck size={18} color={analysis?.remediation_approval_status === 'approved' ? 'var(--status-compliant)' : 'var(--status-partial)'} />
-          <div>
-            <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)' }}>Remediation Review</span>
-            <span style={{ fontWeight: '700', color: analysis?.remediation_approval_status === 'approved' ? 'var(--status-compliant)' : 'var(--status-partial)' }}>
-              {analysis?.remediation_approval_status || 'pending_review'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid split */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '32px' }}>
-        {/* Left column - findings details */}
-        <div>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px' }}>Evaluated Requirements</h3>
-          <div>
+      <div className="report-evidence-grid">
+        <OperationalPanel title="Evaluated Requirements" meta={`${gaps.length} findings`}>
+          <div className="requirement-list">
             {gaps.map((gap) => (
               <RequirementCard 
                 key={gap.id}
@@ -266,33 +252,25 @@ function ReportView() {
                 remediation_plan={gap.remediation_plan}
                 code_location={gap.code_location}
                 agent_name={gap.agent_name}
+                selected={selectedGap?.id === gap.id}
+                onSelect={() => setSelectedFindingId(gap.id)}
               />
             ))}
           </div>
-        </div>
+        </OperationalPanel>
 
-        {/* Right column - codebase visualizer & quick stats */}
-        <div>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Code size={16} color="var(--accent-blue)" />
-            Codebase Audit Inspector
-          </h3>
-          <div className="card" style={{ padding: '24px', marginBottom: '32px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginBottom: '16px' }}>
-              File under inspection: <code style={{ color: 'var(--accent-purple)' }}>{inspector?.file_path || 'Loading code references...'}</code>
-            </span>
-            <CodeViewer code={inspector?.code || ''} annotations={inspector?.annotations || []} />
-          </div>
-
-          <div className="card">
-            <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>GDPR Policy Export</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '20px' }}>
-              Based on the compliance controls identified, click below to export customized disclosure clauses ready for your public Privacy Policy.
-            </p>
-            <button onClick={() => handleDownload('policy')} className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-              <Download size={14} /> Export Privacy Policy Clauses
-            </button>
-          </div>
+        <div className="report-evidence-grid__inspector">
+          <OperationalPanel title="Codebase Audit Inspector" meta={inspector?.file_path || 'Loading code references'}>
+            <div className="code-inspector-pad">
+              <CodeViewer code={inspector?.code || ''} annotations={inspector?.annotations || []} activeLine={activeLine} />
+            </div>
+          </OperationalPanel>
+          <OperationalPanel title="Policy Export" meta="Existing report action">
+            <div className="policy-export">
+              <p>Export the disclosure clauses generated from the identified controls.</p>
+              <button type="button" onClick={() => handleDownload('policy')} className="btn-secondary"><Download size={14} /> Export Privacy Policy Clauses</button>
+            </div>
+          </OperationalPanel>
         </div>
       </div>
     </div>

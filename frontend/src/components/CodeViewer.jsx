@@ -1,4 +1,4 @@
-function CodeViewer({ code = '', annotations = [] }) {
+function CodeViewer({ code = '', annotations = [], activeLine = null }) {
   const lines = code.split('\n');
 
   // Create lookup for annotations by line number
@@ -18,6 +18,7 @@ function CodeViewer({ code = '', annotations = [] }) {
           if (ann) {
             highlightClass = `code-viewer-highlighted code-viewer-highlight-${ann.status}`;
           }
+          if (activeLine === lineNum) highlightClass += ' code-viewer-line-active';
 
           return (
             <div 

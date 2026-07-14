@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
-function ComplianceGauge({ score = 0, size = 160 }) {
+function ComplianceGauge({ score = 0, size = 160, label = 'Compliance Score' }) {
   const [animatedScore, setAnimatedScore] = useState(0);
   const numberRef = useRef(null);
 
@@ -78,7 +78,7 @@ function ComplianceGauge({ score = 0, size = 160 }) {
         </div>
       </div>
       <span className="label" style={{ marginTop: '14px' }}>
-        Compliance Score
+        {label}
       </span>
     </div>
   );
