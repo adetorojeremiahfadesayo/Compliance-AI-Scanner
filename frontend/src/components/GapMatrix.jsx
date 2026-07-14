@@ -66,7 +66,7 @@ function GapMatrix({ gaps = [] }) {
       case 'critical':
         return { color: 'var(--status-non-compliant)', fontWeight: 'bold' };
       case 'high':
-        return { color: '#FF7B72' };
+        return { color: 'var(--status-non-compliant)' };
       case 'medium':
         return { color: 'var(--status-partial)' };
       case 'low':
@@ -85,7 +85,8 @@ function GapMatrix({ gaps = [] }) {
       {/* Mini Stats Banner */}
       <div style={{
         display: 'flex',
-        gap: '16px',
+        flexWrap: 'wrap',
+        gap: '12px',
         marginBottom: '20px',
         fontSize: '14px'
       }}>
@@ -104,10 +105,9 @@ function GapMatrix({ gaps = [] }) {
       </div>
 
       {/* Grid Table */}
-      <div style={{
+      <div className="table-scroll" style={{
         border: '1px solid var(--border-primary)',
         borderRadius: 'var(--radius-md)',
-        overflow: 'hidden',
         backgroundColor: 'var(--bg-secondary)'
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
@@ -140,7 +140,7 @@ function GapMatrix({ gaps = [] }) {
           <tbody>
             {sortedGaps.map((gap) => {
               const isExpanded = expandedGapId === gap.id;
-              const rowBg = gap.status === 'compliant' ? 'rgba(63, 185, 80, 0.01)' : (gap.status === 'partial' ? 'rgba(210, 153, 34, 0.01)' : 'rgba(248, 81, 73, 0.01)');
+              const rowBg = gap.status === 'compliant' ? 'rgba(var(--ok-rgb), 0.01)' : (gap.status === 'partial' ? 'rgba(var(--warn-rgb), 0.01)' : 'rgba(var(--risk-rgb), 0.01)');
               
               return (
                 <React.Fragment key={gap.id}>
@@ -167,10 +167,10 @@ function GapMatrix({ gaps = [] }) {
                     <td style={{ padding: '16px 20px', textTransform: 'capitalize', fontSize: '13px', ...getPriorityStyle(gap.priority) }}>
                       {gap.priority}
                     </td>
-                    <td style={{ padding: '16px 20px', fontSize: '12px', color: 'var(--accent-blue)', fontFamily: 'monospace' }}>
+                    <td style={{ padding: '16px 20px', fontSize: '12px', color: 'var(--accent-blue)', fontFamily: 'var(--font-mono)' }}>
                       {gap.agent_name || 'GapDetector'}
                     </td>
-                    <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <td style={{ padding: '16px 20px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-secondary)' }}>
                       {gap.code_location ? gap.code_location.split(':')[0] : 'N/A'}
                     </td>
                   </tr>
@@ -192,12 +192,12 @@ function GapMatrix({ gaps = [] }) {
                           {gap.code_location && (
                             <div>
                               <strong style={{ color: 'var(--accent-blue)' }}>Location Reference:</strong>
-                              <p style={{ marginTop: '4px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{gap.code_location}</p>
+                              <p style={{ marginTop: '4px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>{gap.code_location}</p>
                             </div>
                           )}
                           <div>
                             <strong style={{ color: 'var(--accent-blue)' }}>Agent Evidence:</strong>
-                            <p style={{ marginTop: '4px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{gap.agent_name || 'GapDetector'}</p>
+                            <p style={{ marginTop: '4px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>{gap.agent_name || 'GapDetector'}</p>
                           </div>
                           {gap.remediation_plan && (
                             <div>

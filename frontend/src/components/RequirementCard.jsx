@@ -115,8 +115,8 @@ function RequirementCard({
           {/* Gap description */}
           {status !== 'compliant' && gap_description && (
             <div style={{
-              backgroundColor: 'rgba(248, 81, 73, 0.03)',
-              border: '1px solid rgba(248, 81, 73, 0.15)',
+              backgroundColor: 'rgba(var(--risk-rgb), 0.03)',
+              border: '1px solid rgba(var(--risk-rgb), 0.15)',
               borderRadius: 'var(--radius-md)',
               padding: '16px',
               marginBottom: '20px'
@@ -127,11 +127,11 @@ function RequirementCard({
               </h5>
               <p style={{ color: 'var(--text-primary)' }}>{gap_description}</p>
               {code_location && (
-                <div style={{ marginTop: '8px', fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+                <div style={{ marginTop: '8px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                   File: <code style={{ color: 'var(--accent-blue)', background: 'rgba(255, 255, 255, 0.05)', padding: '2px 6px', borderRadius: '4px' }}>{code_location}</code>
                 </div>
               )}
-              <div style={{ marginTop: '8px', fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+              <div style={{ marginTop: '8px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                 Agent: <code style={{ color: 'var(--accent-blue)', background: 'rgba(255, 255, 255, 0.05)', padding: '2px 6px', borderRadius: '4px' }}>{agent_name || 'GapDetector'}</code>
               </div>
             </div>

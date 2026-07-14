@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, AlertOctagon, Layers, PlusCircle, CheckCircle, Clock, Bot, UserCheck, Server, Globe, Sparkles } from 'lucide-react';
+import { Shield, AlertOctagon, PlusCircle, Clock, UserCheck, Server, Globe, ArrowUpRight } from 'lucide-react';
 import { api } from '../services/api';
 import { DEMO_CODEBASES, INDUSTRIES } from '../data/regulations';
+import ScanField from '../components/ScanField';
+import CountUp from '../components/CountUp';
+
+const LANG_TAGS = { 'Python (Flask)': 'PY', 'Python (FastAPI)': 'PY', 'Node.js (Express)': 'JS' };
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -55,94 +59,74 @@ function Dashboard() {
 
   return (
     <div className="fade-in">
-      {/* Hero Header */}
-      <div style={{ marginBottom: '48px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <div style={{ padding: '6px 14px', borderRadius: '999px', background: 'rgba(88,166,255,0.1)', border: '1px solid rgba(88,166,255,0.2)', fontSize: '12px', fontWeight: '700', color: 'var(--accent-blue)', letterSpacing: '1px' }}>
-                GLOBAL COMPLIANCE ENGINE
-              </div>
-            </div>
-            <h1 style={{ fontSize: '32px', fontWeight: '900', letterSpacing: '-0.8px', lineHeight: '1.1', marginBottom: '10px' }}>
-              Software creation has never<br />
-              <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                been easier.
-              </span>
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', maxWidth: '500px' }}>
-              But compliance still is. We're changing that — check if your software meets source-backed country and industry rules before you ship.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
-            <button onClick={() => navigate('/new-analysis')} className="btn-primary" style={{ padding: '14px 28px', fontSize: '15px' }}>
-              <Sparkles size={17} />
-              <span>Start a Scan</span>
-            </button>
-          </div>
+      {/* Header: asymmetric split, scan field on the right */}
+      <div className="reveal cols-hero" style={{ '--i': 0, marginBottom: '40px', minHeight: '260px' }}>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '40px', fontWeight: '760', letterSpacing: '-0.02em', lineHeight: '1.04', marginBottom: '14px', maxWidth: '520px' }}>
+            Software creation has never been{' '}
+            <span style={{ color: 'var(--accent)', fontStyle: 'italic', fontWeight: '640' }}>easier.</span>
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.65', maxWidth: '460px', marginBottom: '24px' }}>
+            But compliance still is. We're changing that: check if your software meets
+            source-backed country and industry rules before you ship.
+          </p>
+          <button onClick={() => navigate('/new-analysis')} className="btn-primary" style={{ padding: '13px 26px', fontSize: '15px' }}>
+            <span>Start a Scan</span>
+            <ArrowUpRight size={16} />
+          </button>
+        </div>
+        <div className="scanfield-wrap" style={{ position: 'relative', height: '280px', minWidth: 0 }}>
+          <ScanField />
         </div>
       </div>
 
       {error && (
-        <div style={{ border: '1px solid rgba(248,81,73,0.35)', background: 'rgba(248,81,73,0.08)', color: 'var(--text-primary)', borderRadius: 'var(--radius-md)', padding: '16px 20px', marginBottom: '24px', fontSize: '14px' }}>
+        <div className="reveal" style={{ '--i': 1, border: '1px solid rgba(var(--risk-rgb),0.35)', background: 'rgba(var(--risk-rgb),0.07)', color: 'var(--text-primary)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', marginBottom: '24px', fontSize: '14px' }}>
           {error}
         </div>
       )}
 
-      {/* Stats */}
-      <div className="dashboard-grid" style={{ marginBottom: '40px' }}>
+      {/* Stat rail: hairline-divided cells, mono numerals */}
+      <div className="dashboard-grid reveal" style={{ '--i': 1, marginBottom: '40px' }}>
         {[
-          { icon: <Layers size={20} />, label: 'Registered Codebases', value: projects.length || DEMO_CODEBASES.length, color: 'var(--accent-blue)', bg: 'rgba(88,166,255,0.1)' },
-          { icon: <Bot size={20} />, label: 'Scans Run', value: analyses.length, color: 'var(--accent-purple)', bg: 'rgba(188,140,255,0.1)' },
-          { icon: <CheckCircle size={20} />, label: 'Avg Compliance', value: `${Math.round(stats.avgCompliance)}%`, color: 'var(--status-compliant)', bg: 'rgba(63,185,80,0.1)' },
-          { icon: <AlertOctagon size={20} />, label: 'Critical Gaps', value: stats.criticalGaps, color: 'var(--status-non-compliant)', bg: 'rgba(248,81,73,0.1)' },
-        ].map(({ icon, label, value, color, bg }) => (
-          <div key={label} className="card" style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', backgroundColor: bg, color }}>{icon}</div>
-            <div>
-              <span style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)' }}>{label}</span>
-              <span style={{ fontSize: '24px', fontWeight: '800', color }}>{value}</span>
-            </div>
+          { label: 'Registered codebases', value: projects.length || DEMO_CODEBASES.length },
+          { label: 'Scans run', value: analyses.length },
+          { label: 'Avg compliance', value: Math.round(stats.avgCompliance), suffix: '%' },
+          { label: 'Critical gaps', value: stats.criticalGaps, alert: stats.criticalGaps > 0 },
+        ].map(({ label, value, suffix = '', alert }) => (
+          <div key={label} className="stat-cell">
+            <span className="label" style={{ display: 'block', marginBottom: '10px' }}>{label}</span>
+            <CountUp
+              value={value}
+              suffix={suffix}
+              style={{ fontSize: '30px', fontWeight: '500', color: alert ? 'var(--status-non-compliant)' : 'var(--text-primary)', lineHeight: 1 }}
+            />
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
-        {/* Left: Scans + Demo Codebases */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* Demo Codebases */}
-          <div>
-            <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Globe size={16} color="var(--accent-blue)" /> Demo Codebases
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {DEMO_CODEBASES.map(cb => {
-                const ind = INDUSTRIES.find(i => i.id === cb.industry);
+      <div className="cols-main">
+        {/* Left: Demo codebases + recent scans */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
+          <div className="reveal" style={{ '--i': 2 }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '14px' }}>Demo Codebases</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {DEMO_CODEBASES.map((cb, i) => {
+                const ind = INDUSTRIES.find(x => x.id === cb.industry);
                 return (
-                  <div
-                    key={cb.id}
-                    onClick={() => navigate('/new-analysis')}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
-                      padding: '18px 20px', borderRadius: '12px', cursor: 'pointer',
-                      background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-primary)',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = ind?.color + '60'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  >
+                  <div key={cb.id} className="row-item reveal" style={{ '--i': 3 + i }} onClick={() => navigate('/new-analysis')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
-                      <div style={{ fontSize: '24px', flexShrink: 0 }}>{cb.languageIcon}</div>
+                      <span className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', padding: '4px 7px', flexShrink: 0 }}>
+                        {LANG_TAGS[cb.language] || cb.language.slice(0, 2).toUpperCase()}
+                      </span>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '3px' }}>{cb.name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cb.description}</div>
+                        <div style={{ fontWeight: '650', fontSize: '14px', marginBottom: '3px' }}>{cb.name}</div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cb.description}</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '6px', background: `${ind?.color}15`, color: ind?.color, border: `1px solid ${ind?.color}30`, fontWeight: '600', whiteSpace: 'nowrap' }}>
-                        {ind?.icon} {ind?.label}
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#F85149', fontWeight: '700' }}>{cb.violations.length} violations</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{ind?.label}</span>
+                      <span className="mono" style={{ fontSize: '11.5px', color: 'var(--status-non-compliant)', whiteSpace: 'nowrap' }}>{cb.violations.length} violations</span>
                     </div>
                   </div>
                 );
@@ -150,53 +134,42 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Recent Scans */}
-          <div>
-            <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '16px' }}>Recent Scan Audits</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {loading && <div className="card" style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Loading live scans…</div>}
+          <div className="reveal" style={{ '--i': 4 }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '14px' }}>Recent Scan Audits</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {loading && (
+                <div className="card scan-sweep" style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Loading live scans…</div>
+              )}
 
               {!loading && analyses.length === 0 && (
-                <div className="card" style={{ textAlign: 'center', padding: '40px 24px' }}>
-                  <Shield size={28} color="var(--accent-blue)" />
+                <div className="card" style={{ textAlign: 'center', padding: '44px 24px' }}>
+                  <Shield size={26} color="var(--accent)" strokeWidth={1.6} />
                   <h3 style={{ marginTop: '16px', marginBottom: '8px', fontSize: '18px' }}>No scans yet</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px', maxWidth: '380px', marginInline: 'auto' }}>
                     Launch a compliance scan to audit your codebase against country-specific industry rules.
                   </p>
-                  <button onClick={() => navigate('/new-analysis')} className="btn-primary">
-                    <PlusCircle size={16} /><span>Start First Scan</span>
+                  <button onClick={() => navigate('/new-analysis')} className="btn-secondary">
+                    <PlusCircle size={15} /><span>New Scan</span>
                   </button>
                 </div>
               )}
 
-              {analyses.map(analysis => {
+              {analyses.map((analysis, i) => {
                 let scoreColor = 'var(--status-non-compliant)';
                 if (analysis.overall_score >= 80) scoreColor = 'var(--status-compliant)';
                 else if (analysis.overall_score >= 60) scoreColor = 'var(--status-partial)';
 
                 return (
-                  <div
-                    key={analysis.id}
-                    onClick={() => navigate(`/analysis/${analysis.id}`)}
-                    style={{
-                      backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-primary)',
-                      borderRadius: 'var(--radius-md)', padding: '18px 20px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                  >
+                  <div key={analysis.id} className="row-item reveal" style={{ '--i': 5 + i }} onClick={() => navigate(`/analysis/${analysis.id}`)}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
-                      <span style={{ fontSize: '15px', fontWeight: '600' }}>{analysis.project?.name || `Project #${analysis.project_id}`}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '14.5px', fontWeight: '650' }}>{analysis.project?.name || `Project #${analysis.project_id}`}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span>{analysis.regulation?.name || `Regulation #${analysis.regulation_id}`}</span>
-                        <span style={{ width: '3px', height: '3px', borderRadius: '50%', backgroundColor: 'var(--text-tertiary)', flexShrink: 0 }} />
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Clock size={11} />{new Date(analysis.created_at).toLocaleDateString()}</span>
+                        <span className="mono" style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>{new Date(analysis.created_at).toLocaleDateString()}</span>
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '18px', fontWeight: '800', color: scoreColor }}>{Math.round(analysis.overall_score || 0)}%</span>
+                      <span className="mono" style={{ fontSize: '16px', fontWeight: '500', color: scoreColor }}>{Math.round(analysis.overall_score || 0)}%</span>
                       {getStatusBadge(analysis)}
                     </div>
                   </div>
@@ -206,55 +179,52 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Right sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
-            <span style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Human-approved packages</span>
-            <span style={{ fontSize: '26px', fontWeight: '800', color: 'var(--status-compliant)' }}>{stats.approvedPackages}</span>
+        {/* Right rail */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="card reveal" style={{ '--i': 3, padding: '20px' }}>
+            <span className="label" style={{ display: 'block', marginBottom: '10px' }}>Human-approved packages</span>
+            <CountUp value={stats.approvedPackages} style={{ fontSize: '28px', fontWeight: '500', color: 'var(--status-compliant)', lineHeight: 1 }} />
           </div>
 
-          {/* Coverage Map */}
-          <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+          <div className="card reveal" style={{ '--i': 4, padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Globe size={15} color="var(--accent-blue)" />
+              <Globe size={14} color="var(--accent)" strokeWidth={1.8} />
               <h3 style={{ fontSize: '14px', fontWeight: '700' }}>Coverage</h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
-                { label: 'Industries', value: '3 verticals', icon: '🏭' },
-                { label: 'Countries', value: '25 countries', icon: '🌍' },
-                { label: 'Frameworks', value: '15+ regulations', icon: '📋' },
-                { label: 'Continents', value: '5 regions', icon: '🗺️' },
-              ].map(({ label, value, icon }) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{icon}</span>{label}
-                  </span>
-                  <span style={{ fontWeight: '700', color: 'var(--accent-blue)' }}>{value}</span>
+                { label: 'Industries', value: '3 verticals' },
+                { label: 'Countries', value: '25 countries' },
+                { label: 'Frameworks', value: '15+ regulations' },
+                { label: 'Continents', value: '5 regions' },
+              ].map(({ label, value }, i) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderTop: i > 0 ? '1px solid var(--border-primary)' : 'none', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                  <span className="mono" style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{value}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+          <div className="card reveal" style={{ '--i': 5, padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <Server size={15} color="var(--accent-blue)" />
+              <Server size={14} color="var(--accent)" strokeWidth={1.8} />
               <h3 style={{ fontSize: '14px', fontWeight: '700' }}>Engine Status</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Provider</span>
-                <span style={{ fontWeight: '700' }}>{deploymentProof?.deployment_provider || 'Compliance AutoPilot'}</span>
+                <span style={{ fontWeight: '650' }}>{deploymentProof?.deployment_provider || 'Compliance AutoPilot'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>AI Key</span>
-                <span style={{ color: deploymentProof?.api_key_configured ? 'var(--status-compliant)' : 'var(--status-partial)', fontWeight: '700' }}>
+                <span style={{ color: deploymentProof?.api_key_configured ? 'var(--status-compliant)' : 'var(--status-partial)', fontWeight: '650' }}>
                   {deploymentProof?.api_key_configured ? 'Configured' : 'Not detected'}
                 </span>
               </div>
               <div>
                 <span style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '4px' }}>Models</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{(deploymentProof?.models || ['CAP-Analyzer v2', 'CAP-GapDetector v1']).join(', ')}</span>
+                <span className="mono" style={{ fontSize: '11px', color: 'var(--text-primary)' }}>{(deploymentProof?.models || ['CAP-Analyzer v2', 'CAP-GapDetector v1']).join(', ')}</span>
               </div>
             </div>
           </div>

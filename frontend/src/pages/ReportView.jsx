@@ -235,7 +235,7 @@ function ReportView() {
         </div>
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
           <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)' }}>Models Used</span>
-          <span style={{ fontWeight: '700', fontFamily: 'monospace', fontSize: '13px' }}>{analysis?.model_names || 'qwen-max, qwen-plus'}</span>
+          <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{analysis?.model_names || 'qwen-max, qwen-plus'}</span>
         </div>
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
           <UserCheck size={18} color={analysis?.remediation_approval_status === 'approved' ? 'var(--status-compliant)' : 'var(--status-partial)'} />

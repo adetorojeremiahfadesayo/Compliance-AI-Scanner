@@ -11,7 +11,7 @@ import { connectToAnalysis } from '../services/websocket';
 const DEMO_LOGS = (codebaseName, country, framework) => [
   { agent_name: 'Orchestrator', action: 'pipeline_started', details: `Compliance AutoPilot pipeline initiated for ${codebaseName}.`, timestamp: new Date(Date.now() - 7000).toISOString() },
   { agent_name: 'GeoRegulator', action: 'regulations_loaded', details: `Loaded ${framework} for ${country}. Regulatory authority confirmed.`, timestamp: new Date(Date.now() - 6000).toISOString() },
-  { agent_name: 'CodebaseAnalyzer', action: 'start_scanning', details: `Scanning ${codebaseName} — parsing source files, routes, models and middleware.`, timestamp: new Date(Date.now() - 5000).toISOString() },
+  { agent_name: 'CodebaseAnalyzer', action: 'start_scanning', details: `Scanning ${codebaseName}: parsing source files, routes, models and middleware.`, timestamp: new Date(Date.now() - 5000).toISOString() },
   { agent_name: 'CodebaseAnalyzer', action: 'scan_completed', details: `Semantic scan complete. Identified authentication flows, data models, API routes and logging patterns.`, timestamp: new Date(Date.now() - 4000).toISOString() },
   { agent_name: 'GapDetector', action: 'start_mapping', details: `Cross-referencing ${codebaseName} patterns against ${framework} requirements.`, timestamp: new Date(Date.now() - 3000).toISOString() },
   { agent_name: 'GapDetector', action: 'gaps_discovered', details: `Compliance gaps identified. Critical violations flagged for security, data rights and authentication controls.`, timestamp: new Date(Date.now() - 2000).toISOString() },
@@ -195,8 +195,8 @@ function AnalysisView() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>Compliance Scan Audit</h1>
             {offlineMode && (
-              <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: 'rgba(210,153,34,0.12)', border: '1px solid rgba(210,153,34,0.35)', color: '#D29922' }}>
-                OFFLINE DEMO — backend unavailable
+              <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: 'rgba(var(--warn-rgb),0.12)', border: '1px solid rgba(var(--warn-rgb),0.35)', color: 'var(--status-partial)' }}>
+                OFFLINE DEMO · backend unavailable
               </span>
             )}
           </div>
@@ -250,7 +250,7 @@ function AnalysisView() {
       {prResult && (
         <div style={{
           background: 'var(--bg-secondary)',
-          border: `1px solid ${prResult.status === 'created' ? 'rgba(63,185,80,0.35)' : 'rgba(248,81,73,0.35)'}`,
+          border: `1px solid ${prResult.status === 'created' ? 'rgba(var(--ok-rgb),0.35)' : 'rgba(var(--risk-rgb),0.35)'}`,
           borderRadius: 'var(--radius-md)', padding: '14px 18px', marginBottom: '28px',
           display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
         }}>
@@ -268,13 +268,13 @@ function AnalysisView() {
       {(analysis?.framework || analysis?.authority) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
           {analysis.framework && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: 'rgba(88,166,255,0.08)', border: '1px solid rgba(88,166,255,0.2)', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: 'rgba(var(--accent-rgb),0.08)', border: '1px solid rgba(var(--accent-rgb),0.2)', fontSize: '12px' }}>
               <Globe size={13} color="var(--accent-blue)" />
               <span style={{ color: 'var(--accent-blue)', fontWeight: '600' }}>{analysis.framework}</span>
             </div>
           )}
           {analysis.authority && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: 'rgba(188,140,255,0.08)', border: '1px solid rgba(188,140,255,0.2)', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '8px', background: 'rgba(152,162,174,0.08)', border: '1px solid rgba(152,162,174,0.2)', fontSize: '12px' }}>
               <Building2 size={13} color="var(--accent-purple)" />
               <span style={{ color: 'var(--accent-purple)', fontWeight: '600' }}>{analysis.authority}</span>
             </div>
@@ -305,7 +305,7 @@ function AnalysisView() {
         </div>
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '14px 16px' }}>
           <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Models</span>
-          <span style={{ fontWeight: '700', fontFamily: 'monospace', fontSize: '12px' }}>{analysis?.model_names || 'CAP-Analyzer v2'}</span>
+          <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{analysis?.model_names || 'CAP-Analyzer v2'}</span>
         </div>
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', padding: '14px 16px' }}>
           <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Remediation</span>
@@ -328,7 +328,7 @@ function AnalysisView() {
                   backgroundColor: isFinished ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'var(--bg-primary)',
                   border: '2px solid', borderColor: isFinished ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'var(--border-primary)',
                   color: (isFinished || isActive) ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', fontSize: '12px',
-                  boxShadow: isActive ? '0 0 12px rgba(88,166,255,0.4)' : 'none',
+                  boxShadow: isActive ? '0 0 12px rgba(var(--accent-rgb),0.4)' : 'none',
                 }}>
                   {isFinished ? '✓' : idx + 1}
                 </div>
@@ -350,7 +350,7 @@ function AnalysisView() {
           <AgentTimeline events={auditLogs} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '28px' }}>
+        <div className="cols-side">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div className="card" style={{ display: 'flex', justifyContent: 'center', padding: '36px 20px' }}>
               <ComplianceGauge score={analysis?.overall_score} size={180} />
@@ -360,7 +360,7 @@ function AnalysisView() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
                 {[
                   { k: 'Status', v: <span style={{ color: 'var(--status-compliant)', fontWeight: 'bold' }}>Complete</span> },
-                  { k: 'Scan ID', v: <span style={{ fontFamily: 'monospace' }}>#{id}</span> },
+                  { k: 'Scan ID', v: <span style={{ fontFamily: 'var(--font-mono)' }}>#{id}</span> },
                   { k: 'Total Gaps', v: analysis?.totalGaps || gaps.length },
                   { k: 'Critical', v: <span style={{ color: 'var(--status-non-compliant)', fontWeight: 'bold' }}>{analysis?.criticalGaps || gaps.filter(g => g.priority === 'critical').length}</span> },
                 ].map(({ k, v }) => (

@@ -45,7 +45,7 @@ function CodeViewer({ code = '', annotations = [] }) {
                   padding: '2px 8px',
                   borderRadius: '4px',
                   backgroundColor: ann.status === 'compliant' ? 'var(--status-compliant)' : (ann.status === 'partial' ? 'var(--status-partial)' : 'var(--status-non-compliant)'),
-                  color: '#000',
+                  color: 'var(--accent-ink)',
                   fontWeight: '600',
                   pointerEvents: 'none'
                 }}>

@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle, GitBranch, AlertCircle } from 'lucide-react';
+import { gsap } from 'gsap';
+import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle, GitBranch, AlertCircle, Landmark, Ship, Clapperboard, Rocket } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
 import { api } from '../services/api';
 
 const STEPS = ['Industry', 'Geography', 'Codebase', 'Launch'];
+
+const INDUSTRY_ICONS = { banking: Landmark, shipping: Ship, entertainment: Clapperboard };
 
 const GITHUB_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+/;
 
@@ -73,6 +76,15 @@ function NewAnalysis() {
       setSelectedCodebase(matchingCodebases[0]?.id || null);
     }
   }, [selectedIndustry, selectedCodebase]);
+
+  // Step choreography: slide the step panel in whenever the step changes.
+  const stepRef = useRef(null);
+  useEffect(() => {
+    const el = stepRef.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const tween = gsap.fromTo(el, { opacity: 0, x: 26 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' });
+    return () => tween.kill();
+  }, [step]);
 
   const canProceed = () => {
     if (step === 1) return !!selectedIndustry;
@@ -199,24 +211,24 @@ function NewAnalysis() {
           return (
             <div key={label} style={{ display: 'flex', alignItems: 'center', flex: idx < STEPS.length - 1 ? 1 : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                <div style={{
+                <div className="mono" style={{
                   width: '28px', height: '28px', borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: isDone ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'rgba(255,255,255,0.06)',
-                  border: `2px solid ${isDone ? 'var(--status-compliant)' : isActive ? 'var(--accent-blue)' : 'var(--border-primary)'}`,
-                  color: isDone ? '#000' : isActive ? '#000' : 'var(--text-secondary)',
-                  fontWeight: '700', fontSize: '12px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: isActive ? '0 0 12px rgba(88,166,255,0.4)' : 'none',
+                  backgroundColor: isDone ? 'rgba(var(--accent-rgb),0.12)' : isActive ? 'var(--accent)' : 'transparent',
+                  border: `1px solid ${isDone ? 'rgba(var(--accent-rgb),0.4)' : isActive ? 'var(--accent)' : 'var(--border-strong)'}`,
+                  color: isDone ? 'var(--accent)' : isActive ? 'var(--accent-ink)' : 'var(--text-tertiary)',
+                  fontWeight: '500', fontSize: '12px',
+                  transition: 'all 0.3s var(--ease-out)',
+                  boxShadow: isActive ? '0 0 0 4px rgba(var(--accent-rgb),0.14)' : 'none',
                 }}>
-                  {isDone ? <CheckCircle size={14} /> : num}
+                  {isDone ? <CheckCircle size={13} /> : num}
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: isActive ? '700' : '400', color: isActive ? 'var(--text-primary)' : isDone ? 'var(--text-secondary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '13px', fontWeight: isActive ? '650' : '450', color: isActive ? 'var(--text-primary)' : isDone ? 'var(--text-secondary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                   {label}
                 </span>
               </div>
               {idx < STEPS.length - 1 && (
-                <div style={{ flex: 1, height: '1px', backgroundColor: step > num ? 'var(--status-compliant)' : 'var(--border-primary)', margin: '0 12px', transition: 'background-color 0.3s ease' }} />
+                <div style={{ flex: 1, height: '1px', backgroundColor: step > num ? 'rgba(var(--accent-rgb),0.45)' : 'var(--border-primary)', margin: '0 12px', transition: 'background-color 0.3s var(--ease-out)' }} />
               )}
             </div>
           );
@@ -224,7 +236,7 @@ function NewAnalysis() {
       </div>
 
       {/* Step Content */}
-      <div className="card" style={{ padding: '36px', marginBottom: '28px', minHeight: '340px' }}>
+      <div ref={stepRef} className="card" style={{ padding: '36px', marginBottom: '28px', minHeight: '340px' }}>
 
         {/* STEP 1: Industry */}
         {step === 1 && (
@@ -233,43 +245,34 @@ function NewAnalysis() {
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '28px' }}>
               Each industry has distinct regulatory requirements. Choose the sector that matches your software.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {INDUSTRIES.map(ind => (
-                <div
-                  key={ind.id}
-                  onClick={() => setSelectedIndustry(ind.id)}
-                  style={{
-                    padding: '22px 24px',
-                    borderRadius: '14px',
-                    border: '1px solid',
-                    borderColor: selectedIndustry === ind.id ? ind.color : 'var(--border-primary)',
-                    background: selectedIndustry === ind.id ? ind.gradient : 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    display: 'flex', alignItems: 'center', gap: '20px',
-                    boxShadow: selectedIndustry === ind.id ? `0 0 20px ${ind.color}20` : 'none',
-                  }}
-                  onMouseEnter={e => { if (selectedIndustry !== ind.id) { e.currentTarget.style.borderColor = ind.color + '60'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; } }}
-                  onMouseLeave={e => { if (selectedIndustry !== ind.id) { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; } }}
-                >
-                  <div style={{
-                    fontSize: '32px', width: '56px', height: '56px', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', borderRadius: '14px',
-                    background: `${ind.color}15`, border: `1px solid ${ind.color}30`, flexShrink: 0,
-                  }}>{ind.icon}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px', color: selectedIndustry === ind.id ? ind.color : 'var(--text-primary)' }}>
-                      {ind.label}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {INDUSTRIES.map(ind => {
+                const Icon = INDUSTRY_ICONS[ind.id] || Shield;
+                const isSel = selectedIndustry === ind.id;
+                return (
+                  <div
+                    key={ind.id}
+                    onClick={() => setSelectedIndustry(ind.id)}
+                    className={`select-card${isSel ? ' selected' : ''}`}
+                    style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', gap: '18px' }}
+                  >
+                    <div style={{
+                      width: '48px', height: '48px', display: 'flex', flexShrink: 0,
+                      alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-primary)', background: 'var(--bg-card)',
+                      color: isSel ? 'var(--accent)' : 'var(--text-secondary)',
+                      transition: 'color var(--transition-fast)',
+                    }}>
+                      <Icon size={20} strokeWidth={1.7} />
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{ind.description}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '15.5px', fontWeight: '680', marginBottom: '4px' }}>{ind.label}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{ind.description}</div>
+                    </div>
+                    {isSel && <CheckCircle size={18} color="var(--accent)" style={{ flexShrink: 0 }} />}
                   </div>
-                  {selectedIndustry === ind.id && (
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: ind.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <CheckCircle size={14} color="#000" />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -296,7 +299,7 @@ function NewAnalysis() {
                       padding: '10px 18px', borderRadius: '10px', cursor: 'pointer',
                       border: '1px solid',
                       borderColor: selectedContinent === cont.id ? 'var(--accent-blue)' : 'var(--border-primary)',
-                      background: selectedContinent === cont.id ? 'rgba(88,166,255,0.1)' : 'rgba(255,255,255,0.02)',
+                      background: selectedContinent === cont.id ? 'rgba(var(--accent-rgb),0.1)' : 'rgba(255,255,255,0.02)',
                       color: selectedContinent === cont.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
                       fontSize: '13px', fontWeight: selectedContinent === cont.id ? '700' : '400',
                       display: 'flex', alignItems: 'center', gap: '8px',
@@ -324,7 +327,7 @@ function NewAnalysis() {
                         padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
                         border: '1px solid',
                         borderColor: selectedCountry === country.id ? 'var(--accent-blue)' : 'var(--border-primary)',
-                        background: selectedCountry === country.id ? 'rgba(88,166,255,0.08)' : 'rgba(255,255,255,0.02)',
+                        background: selectedCountry === country.id ? 'rgba(var(--accent-rgb),0.08)' : 'rgba(255,255,255,0.02)',
                         color: selectedCountry === country.id ? 'var(--text-primary)' : 'var(--text-secondary)',
                         fontSize: '14px', fontWeight: selectedCountry === country.id ? '600' : '400',
                         display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
@@ -344,7 +347,7 @@ function NewAnalysis() {
             {fetchingRegs && (
               <div style={{
                 marginTop: '24px', padding: '20px 24px',
-                background: 'rgba(88,166,255,0.05)', border: '1px solid rgba(88,166,255,0.2)',
+                background: 'rgba(var(--accent-rgb),0.05)', border: '1px solid rgba(var(--accent-rgb),0.2)',
                 borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px',
               }}>
                 <Loader2 size={18} color="var(--accent-blue)" className="status-dot-pulsing" />
@@ -378,7 +381,7 @@ function NewAnalysis() {
                     flex: 1, padding: '12px 16px', borderRadius: '10px', cursor: 'pointer',
                     border: '1px solid',
                     borderColor: scanMode === m.id ? 'var(--accent-blue)' : 'var(--border-primary)',
-                    background: scanMode === m.id ? 'rgba(88,166,255,0.08)' : 'rgba(255,255,255,0.02)',
+                    background: scanMode === m.id ? 'rgba(var(--accent-rgb),0.08)' : 'rgba(255,255,255,0.02)',
                     color: scanMode === m.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
                     fontSize: '14px', fontWeight: scanMode === m.id ? '700' : '500',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -391,7 +394,7 @@ function NewAnalysis() {
             </div>
 
             {regulations && (
-              <div style={{ marginBottom: '24px', padding: '14px 18px', background: 'rgba(88,166,255,0.05)', border: '1px solid rgba(88,166,255,0.15)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ marginBottom: '24px', padding: '14px 18px', background: 'rgba(var(--accent-rgb),0.05)', border: '1px solid rgba(var(--accent-rgb),0.15)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Globe size={16} color="var(--accent-blue)" />
                 <div>
                   <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Loaded regulations: </span>
@@ -417,31 +420,22 @@ function NewAnalysis() {
                   <div
                     key={cb.id}
                     onClick={() => setSelectedCodebase(cb.id)}
-                    style={{
-                      padding: '20px 24px', borderRadius: '14px', cursor: 'pointer',
-                      border: '1px solid',
-                      borderColor: selectedCodebase === cb.id ? 'var(--accent-blue)' : 'var(--border-primary)',
-                      background: selectedCodebase === cb.id ? 'rgba(88,166,255,0.05)' : 'rgba(255,255,255,0.02)',
-                      transition: 'all 0.2s ease',
-                      boxShadow: selectedCodebase === cb.id ? '0 0 20px rgba(88,166,255,0.12)' : 'none',
-                    }}
-                    onMouseEnter={e => { if (selectedCodebase !== cb.id) e.currentTarget.style.borderColor = 'rgba(88,166,255,0.3)'; }}
-                    onMouseLeave={e => { if (selectedCodebase !== cb.id) e.currentTarget.style.borderColor = 'var(--border-primary)'; }}
+                    className={`select-card${selectedCodebase === cb.id ? ' selected' : ''}`}
+                    style={{ padding: '20px 24px' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '20px' }}>{cb.languageIcon}</span>
-                          <span style={{ fontSize: '16px', fontWeight: '700' }}>{cb.name}</span>
-                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: `${ind?.color}15`, color: ind?.color, border: `1px solid ${ind?.color}30`, fontWeight: '600' }}>
-                            {ind?.icon} {ind?.label}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '15.5px', fontWeight: '680' }}>{cb.name}</span>
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)', borderRadius: '999px', padding: '2px 9px' }}>
+                            {ind?.label}
                           </span>
                         </div>
                         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>{cb.description}</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                           {cb.violations.slice(0, 3).map((v, i) => (
-                            <span key={i} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.2)', color: '#F85149' }}>
-                              ⚠ {v.length > 38 ? v.slice(0, 38) + '…' : v}
+                            <span key={i} style={{ fontSize: '11px', padding: '3px 9px', borderRadius: '999px', background: 'rgba(var(--risk-rgb),0.08)', border: '1px solid rgba(var(--risk-rgb),0.22)', color: 'var(--status-non-compliant)' }}>
+                              {v.length > 38 ? v.slice(0, 38) + '…' : v}
                             </span>
                           ))}
                           {cb.violations.length > 3 && <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', padding: '3px 8px' }}>+{cb.violations.length - 3} more</span>}
@@ -449,16 +443,13 @@ function NewAnalysis() {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
                         {score !== null && (
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '24px', fontWeight: '900', color: isPassing ? '#3FB950' : '#F85149', lineHeight: 1 }}>{score}%</div>
-                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>est. score</div>
-                            <div style={{ marginTop: '4px', fontSize: '10px', fontWeight: '600', color: isPassing ? '#3FB950' : '#F85149', padding: '2px 6px', borderRadius: '4px', background: isPassing ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)' }}>
-                              {isPassing ? '✓ PASS' : '✗ FAIL'}
-                            </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div className="mono" style={{ fontSize: '22px', fontWeight: '500', color: isPassing ? 'var(--status-compliant)' : 'var(--status-non-compliant)', lineHeight: 1 }}>{score}%</div>
+                            <div className="label" style={{ marginTop: '4px' }}>est. score</div>
                           </div>
                         )}
-                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>{cb.language}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.linesOfCode} lines</div>
+                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.language}</div>
+                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.linesOfCode} lines</div>
                       </div>
                     </div>
                   </div>
@@ -490,8 +481,8 @@ function NewAnalysis() {
                 )}
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '14px', lineHeight: '1.6' }}>
                   The live pipeline clones the repository and runs the full Qwen agent
-                  chain — regulation parsing, codebase analysis, gap detection, and
-                  remediation — streaming progress as it goes. Use a small public repo
+                  chain: regulation parsing, codebase analysis, gap detection, and
+                  remediation, streaming progress as it goes. Use a small public repo
                   for the fastest scan.
                 </p>
 
@@ -501,9 +492,9 @@ function NewAnalysis() {
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
-                    { id: 'gdpr', checked: useGdpr, toggle: () => setUseGdpr(v => !v), label: 'GDPR baseline', detail: 'Article 5 — principles for processing personal data' },
+                    { id: 'gdpr', checked: useGdpr, toggle: () => setUseGdpr(v => !v), label: 'GDPR baseline', detail: 'Article 5: principles for processing personal data' },
                     { id: 'pack', checked: useRulePack, toggle: () => setUseRulePack(v => !v), label: regulations?.framework || 'Country rule pack', detail: `${regulations?.authority || 'Regulatory authority'} · ${selectedCountryData?.label || 'selected country'}` },
-                    { id: 'custom', checked: useCustom, toggle: () => setUseCustom(v => !v), label: 'Custom regulation', detail: 'Paste any regulation or internal policy — the agent parses it into requirements' },
+                    { id: 'custom', checked: useCustom, toggle: () => setUseCustom(v => !v), label: 'Custom regulation', detail: 'Paste any regulation or internal policy. The agent parses it into requirements' },
                   ].map(fw => (
                     <div
                       key={fw.id}
@@ -512,17 +503,18 @@ function NewAnalysis() {
                         padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
                         border: '1px solid', display: 'flex', alignItems: 'center', gap: '12px',
                         borderColor: fw.checked ? 'var(--accent-blue)' : 'var(--border-primary)',
-                        background: fw.checked ? 'rgba(88,166,255,0.06)' : 'rgba(255,255,255,0.02)',
+                        background: fw.checked ? 'rgba(var(--accent-rgb),0.06)' : 'rgba(255,255,255,0.02)',
                         transition: 'all 0.15s ease',
                       }}
                     >
                       <div style={{
-                        width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                        width: '18px', height: '18px', borderRadius: 'var(--radius-sm)', flexShrink: 0,
                         border: '1px solid', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        borderColor: fw.checked ? 'var(--accent-blue)' : 'var(--border-primary)',
-                        background: fw.checked ? 'var(--accent-blue)' : 'transparent',
+                        borderColor: fw.checked ? 'var(--accent)' : 'var(--border-strong)',
+                        background: fw.checked ? 'var(--accent)' : 'transparent',
+                        transition: 'all var(--transition-fast)',
                       }}>
-                        {fw.checked && <CheckCircle size={12} color="#000" />}
+                        {fw.checked && <CheckCircle size={12} color="var(--accent-ink)" />}
                       </div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: fw.checked ? '600' : '500', color: fw.checked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{fw.label}</div>
@@ -570,8 +562,10 @@ function NewAnalysis() {
         {step === 4 && (
           <div className="fade-in" style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ marginBottom: '32px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</div>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '10px' }}>Ready to Launch</h3>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', border: '1px solid rgba(var(--accent-rgb),0.35)', background: 'rgba(var(--accent-rgb),0.07)', marginBottom: '18px' }}>
+                <Rocket size={26} color="var(--accent)" strokeWidth={1.6} />
+              </div>
+              <h3 style={{ fontSize: '22px', fontWeight: '760', marginBottom: '10px' }}>Ready to Launch</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', maxWidth: '480px', margin: '0 auto' }}>
                 The compliance engine will analyse your codebase against <strong style={{ color: 'var(--text-primary)' }}>{regulations?.requirements?.length || 0} requirements</strong> from a source-backed <strong style={{ color: 'var(--text-primary)' }}>{regulations?.authority || 'regulatory authority'}</strong> rule pack.
               </p>
@@ -580,18 +574,18 @@ function NewAnalysis() {
             {/* Config Summary */}
             <div style={{ maxWidth: '420px', margin: '0 auto 36px', background: 'var(--bg-secondary)', borderRadius: '14px', border: '1px solid var(--border-primary)', overflow: 'hidden' }}>
               {[
-                { label: 'Industry', value: `${selectedIndustryData?.icon} ${selectedIndustryData?.label}` },
+                { label: 'Industry', value: selectedIndustryData?.label },
                 { label: 'Country', value: `${selectedCountryData?.flag} ${selectedCountryData?.label}` },
-                { label: 'Framework', value: regulations?.framework || '—' },
-                { label: 'Authority', value: regulations?.authority || '—' },
-                { label: 'Source Updated', value: regulations?.lastUpdated || '—' },
+                { label: 'Framework', value: regulations?.framework || '-' },
+                { label: 'Authority', value: regulations?.authority || '-' },
+                { label: 'Source Updated', value: regulations?.lastUpdated || '-' },
                 ...(scanMode === 'repo'
                   ? [
-                      { label: 'Repository', value: <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{repoName()}</span> },
+                      { label: 'Repository', value: <span className="mono" style={{ fontSize: '12px' }}>{repoName()}</span> },
                       { label: 'Frameworks', value: `${frameworkCount} selected${frameworkCount > 1 ? ' (multi-scan)' : ''}` },
-                      { label: 'Mode', value: '🔴 Live scan' },
+                      { label: 'Mode', value: <span className="mono" style={{ fontSize: '12px', color: 'var(--accent)' }}>LIVE SCAN</span> },
                     ]
-                  : [{ label: 'Codebase', value: `${selectedCodebaseData?.languageIcon} ${selectedCodebaseData?.name}` }, { label: 'Language', value: selectedCodebaseData?.language }]),
+                  : [{ label: 'Codebase', value: selectedCodebaseData?.name }, { label: 'Language', value: <span className="mono" style={{ fontSize: '12px' }}>{selectedCodebaseData?.language}</span> }]),
               ].map((row, i, arr) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 20px', borderBottom: i < arr.length - 1 ? '1px solid var(--border-primary)' : 'none', gap: '12px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{row.label}</span>
@@ -601,7 +595,7 @@ function NewAnalysis() {
             </div>
 
             {launchError && (
-              <div style={{ maxWidth: '480px', margin: '0 auto 24px', padding: '14px 18px', borderRadius: '10px', background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px', textAlign: 'left' }}>
+              <div style={{ maxWidth: '480px', margin: '0 auto 24px', padding: '14px 18px', borderRadius: '10px', background: 'rgba(var(--risk-rgb),0.08)', border: '1px solid rgba(var(--risk-rgb),0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px', textAlign: 'left' }}>
                 <AlertCircle size={16} color="var(--status-non-compliant)" style={{ flexShrink: 0, marginTop: '1px' }} />
                 <span style={{ fontSize: '13px', color: 'var(--status-non-compliant)' }}>{launchError}</span>
               </div>
