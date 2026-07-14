@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-07-14",
+  "framework": "React 19 with Vite 8",
+  "font_stack": {
+    "ui": "Archivo Variable",
+    "mono": "IBM Plex Mono"
+  },
+  "palette": "Cold graphite tokens with a single phosphor operational accent",
+  "motion": "GSAP and Three.js are installed",
+  "spacing": "Existing four-pixel-oriented CSS token system",
+  "preserve": [
+    "React Router route structure",
+    "Archivo Variable and IBM Plex Mono",
+    "existing API and workflow behavior",
+    "semantic compliance status colors"
+  ],
+  "introduce": [
+    "Stitch-derived operational page structure",
+    "route-aware spatial visualization",
+    "coordinated motion choreography",
+    "Hallmark anti-slop and responsive gates"
+  ]
+}
