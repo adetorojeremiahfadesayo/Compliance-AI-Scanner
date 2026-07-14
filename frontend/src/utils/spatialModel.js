@@ -65,7 +65,7 @@ export function buildSpatialModel({
   selections = {},
   focusId = null,
 } = {}) {
-  let nodes = [];
+  let nodes;
 
   if (mode === 'configuration') {
     const items = configurationItems(selections);

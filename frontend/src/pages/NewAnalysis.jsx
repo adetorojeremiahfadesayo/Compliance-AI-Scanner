@@ -65,17 +65,11 @@ function NewAnalysis() {
   // Filter codebases by industry
   const filteredCodebases = DEMO_CODEBASES.filter(cb => !selectedIndustry || cb.industry === selectedIndustry);
 
-  useEffect(() => {
-    if (!selectedIndustry) {
-      setSelectedCodebase(null);
-      return;
-    }
-
-    const matchingCodebases = DEMO_CODEBASES.filter(cb => cb.industry === selectedIndustry);
-    if (!matchingCodebases.some(cb => cb.id === selectedCodebase)) {
-      setSelectedCodebase(matchingCodebases[0]?.id || null);
-    }
-  }, [selectedIndustry, selectedCodebase]);
+  const handleIndustrySelect = (industryId) => {
+    const matchingCodebases = DEMO_CODEBASES.filter(cb => cb.industry === industryId);
+    setSelectedIndustry(industryId);
+    setSelectedCodebase((current) => matchingCodebases.some(cb => cb.id === current) ? current : matchingCodebases[0]?.id || null);
+  };
 
   // Step choreography: slide the step panel in whenever the step changes.
   const stepRef = useRef(null);
@@ -252,7 +246,7 @@ function NewAnalysis() {
                 return (
                   <div
                     key={ind.id}
-                    onClick={() => setSelectedIndustry(ind.id)}
+                    onClick={() => handleIndustrySelect(ind.id)}
                     className={`select-card${isSel ? ' selected' : ''}`}
                     style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', gap: '18px' }}
                   >
