@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ArrowLeft, ArrowRight, Shield, Loader2, Globe, CheckCircle, GitBranch, AlertCircle, Landmark, Ship, Clapperboard, Rocket } from 'lucide-react';
 import { INDUSTRIES, CONTINENTS, COUNTRIES_BY_CONTINENT, DEMO_CODEBASES, getRegulations, generateDemoScanResult } from '../data/regulations';
 import { api } from '../services/api';
+import ScanField from '../components/ScanField';
+import PageContext from '../components/PageContext';
 
 const STEPS = ['Industry', 'Geography', 'Codebase', 'Launch'];
 
@@ -55,6 +57,11 @@ function NewAnalysis() {
   const customRegReady = customRegText.trim().length >= 80;
   const frameworkCount = (useGdpr ? 1 : 0) + (useRulePack ? 1 : 0) + (useCustom ? 1 : 0);
   const frameworksReady = frameworkCount > 0 && (!useCustom || customRegReady);
+  const spatialSelections = useMemo(() => ({
+    industry: selectedIndustry,
+    country: selectedCountry,
+    codebase: scanMode === 'repo' ? repoUrl.trim() : selectedCodebase,
+  }), [selectedIndustry, selectedCountry, selectedCodebase, scanMode, repoUrl]);
 
   const selectedIndustryData = INDUSTRIES.find(i => i.id === selectedIndustry);
   const selectedCountryData = selectedContinent
@@ -180,58 +187,38 @@ function NewAnalysis() {
   };
 
   return (
-    <div className="fade-in" style={{ maxWidth: '860px', margin: '0 auto' }}>
-      {/* Back */}
-      <button
-        onClick={() => navigate('/')}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px' }}
-      >
-        <ArrowLeft size={16} /> Back to Dashboard
-      </button>
+    <div className="configuration-hub">
+      <PageContext
+        title="Configuration Hub"
+        description="Set the industry, jurisdiction, repository source, and rule context for this scan."
+        backAction={{ label: 'Back to Dashboard', onClick: () => navigate('/') }}
+        status={<span className="configuration-hub__step-status mono">STEP {String(step).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}</span>}
+      />
 
-      <div style={{ marginBottom: '36px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px' }}>New Compliance Scan</h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '6px' }}>
-          Check if your software matches source-backed industry rules for a specific country.
-        </p>
-      </div>
-
-      {/* Progress Wizard */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
+      <div className="configuration-hub__layout">
+        <aside className="configuration-steps" aria-label="Scan configuration progress">
+          <div className="configuration-steps__heading">
+            <span>Scan setup</span>
+            <strong>{STEPS[step - 1]}</strong>
+          </div>
+          <div className="configuration-steps__list">
         {STEPS.map((label, idx) => {
           const num = idx + 1;
           const isDone = step > num;
           const isActive = step === num;
           return (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', flex: idx < STEPS.length - 1 ? 1 : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                <div className="mono" style={{
-                  width: '28px', height: '28px', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: isDone ? 'rgba(var(--accent-rgb),0.12)' : isActive ? 'var(--accent)' : 'transparent',
-                  border: `1px solid ${isDone ? 'rgba(var(--accent-rgb),0.4)' : isActive ? 'var(--accent)' : 'var(--border-strong)'}`,
-                  color: isDone ? 'var(--accent)' : isActive ? 'var(--accent-ink)' : 'var(--text-tertiary)',
-                  fontWeight: '500', fontSize: '12px',
-                  transition: 'all 0.3s var(--ease-out)',
-                  boxShadow: isActive ? '0 0 0 4px rgba(var(--accent-rgb),0.14)' : 'none',
-                }}>
-                  {isDone ? <CheckCircle size={13} /> : num}
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: isActive ? '650' : '450', color: isActive ? 'var(--text-primary)' : isDone ? 'var(--text-secondary)' : 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
-                  {label}
-                </span>
-              </div>
-              {idx < STEPS.length - 1 && (
-                <div style={{ flex: 1, height: '1px', backgroundColor: step > num ? 'rgba(var(--accent-rgb),0.45)' : 'var(--border-primary)', margin: '0 12px', transition: 'background-color 0.3s var(--ease-out)' }} />
-              )}
+            <div key={label} className={`configuration-step${isActive ? ' is-active' : ''}${isDone ? ' is-done' : ''}`} aria-current={isActive ? 'step' : undefined}>
+              <span className="configuration-step__number mono">{isDone ? <CheckCircle size={13} /> : String(num).padStart(2, '0')}</span>
+              <span>{label}</span>
             </div>
           );
         })}
-      </div>
+          </div>
+        </aside>
 
-      {/* Step Content */}
-      <div ref={stepRef} className="card" style={{ padding: '36px', marginBottom: '28px', minHeight: '340px' }}>
-
+        <section className="configuration-workspace">
+          {/* Step Content */}
+          <div ref={stepRef} className="configuration-panel">
         {/* STEP 1: Industry */}
         {step === 1 && (
           <div className="fade-in">
@@ -612,13 +599,14 @@ function NewAnalysis() {
       </div>
 
       {/* Navigation */}
-      {step < 4 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div className="configuration-command">
+        {step < 4 ? (
+        <>
           {step > 1 ? (
             <button onClick={handleBack} className="btn-secondary">
               <ArrowLeft size={16} /> Back
             </button>
-          ) : <div />}
+          ) : <span />}
           <button
             onClick={handleNext}
             disabled={!canProceed() || fetchingRegs}
@@ -627,8 +615,28 @@ function NewAnalysis() {
           >
             {fetchingRegs ? <><Loader2 size={16} className="status-dot-pulsing" /> Fetching...</> : <><span>Next</span><ArrowRight size={16} /></>}
           </button>
-        </div>
-      )}
+        </>
+        ) : (
+          <button onClick={handleBack} className="btn-secondary" disabled={loading}>
+            <ArrowLeft size={16} /> Back
+          </button>
+        )}
+      </div>
+        </section>
+
+        <aside className="configuration-field" aria-label="Configuration lattice">
+          <ScanField mode="configuration" selections={spatialSelections} />
+          <div className="configuration-field__label">
+            <span>Configuration lattice</span>
+            <strong>{selectedCountryData?.label || selectedIndustryData?.label || 'Awaiting selection'}</strong>
+          </div>
+          <dl className="configuration-field__context">
+            <div><dt>Industry</dt><dd>{selectedIndustryData?.label || '-'}</dd></div>
+            <div><dt>Jurisdiction</dt><dd>{selectedCountryData?.label || '-'}</dd></div>
+            <div><dt>Source</dt><dd>{scanMode === 'repo' ? (repoName() || '-') : (selectedCodebaseData?.name || '-')}</dd></div>
+          </dl>
+        </aside>
+      </div>
     </div>
   );
 }
