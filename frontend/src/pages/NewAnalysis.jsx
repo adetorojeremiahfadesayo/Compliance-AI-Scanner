@@ -231,7 +231,8 @@ function NewAnalysis() {
                 const Icon = INDUSTRY_ICONS[ind.id] || Shield;
                 const isSel = selectedIndustry === ind.id;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={ind.id}
                     onClick={() => handleIndustrySelect(ind.id)}
                     className={`select-card${isSel ? ' selected' : ''}`}
@@ -251,7 +252,7 @@ function NewAnalysis() {
                       <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{ind.description}</div>
                     </div>
                     {isSel && <CheckCircle size={18} color="var(--accent)" style={{ flexShrink: 0 }} />}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -284,7 +285,7 @@ function NewAnalysis() {
                       color: selectedContinent === cont.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
                       fontSize: '13px', fontWeight: selectedContinent === cont.id ? '700' : '400',
                       display: 'flex', alignItems: 'center', gap: '8px',
-                      transition: 'all 0.15s ease',
+                      transition: 'border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease',
                     }}
                   >
                     <span style={{ fontSize: '16px' }}>{cont.flag}</span> {cont.label}
@@ -312,7 +313,7 @@ function NewAnalysis() {
                         color: selectedCountry === country.id ? 'var(--text-primary)' : 'var(--text-secondary)',
                         fontSize: '14px', fontWeight: selectedCountry === country.id ? '600' : '400',
                         display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
-                        transition: 'all 0.15s ease', width: '100%',
+                        transition: 'border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease', width: '100%',
                       }}
                     >
                       <span style={{ fontSize: '20px' }}>{country.flag}</span>
@@ -366,7 +367,7 @@ function NewAnalysis() {
                     color: scanMode === m.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
                     fontSize: '14px', fontWeight: scanMode === m.id ? '700' : '500',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    transition: 'all 0.15s ease',
+                    transition: 'border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease',
                   }}
                 >
                   {m.icon} {m.label}
@@ -398,7 +399,8 @@ function NewAnalysis() {
                 const score = selectedCountry ? (cb.scoreByCountry?.[selectedCountry] ?? 45) : null;
                 const isPassing = score !== null && score >= 60;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={cb.id}
                     onClick={() => setSelectedCodebase(cb.id)}
                     className={`select-card${selectedCodebase === cb.id ? ' selected' : ''}`}
@@ -433,7 +435,7 @@ function NewAnalysis() {
                         <div className="mono" style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{cb.linesOfCode} lines</div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -477,15 +479,16 @@ function NewAnalysis() {
                     { id: 'pack', checked: useRulePack, toggle: () => setUseRulePack(v => !v), label: regulations?.framework || 'Country rule pack', detail: `${regulations?.authority || 'Regulatory authority'} · ${selectedCountryData?.label || 'selected country'}` },
                     { id: 'custom', checked: useCustom, toggle: () => setUseCustom(v => !v), label: 'Custom regulation', detail: 'Paste any regulation or internal policy. The agent parses it into requirements' },
                   ].map(fw => (
-                    <div
+                    <button
+                      type="button"
                       key={fw.id}
                       onClick={fw.toggle}
                       style={{
                         padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
-                        border: '1px solid', display: 'flex', alignItems: 'center', gap: '12px',
+                        border: '1px solid', display: 'flex', alignItems: 'center', gap: '12px', width: '100%', textAlign: 'left', color: 'inherit',
                         borderColor: fw.checked ? 'var(--accent-blue)' : 'var(--border-primary)',
                         background: fw.checked ? 'rgba(var(--accent-rgb),0.06)' : 'rgba(255,255,255,0.02)',
-                        transition: 'all 0.15s ease',
+                        transition: 'border-color 0.15s ease, background-color 0.15s ease',
                       }}
                     >
                       <div style={{
@@ -493,7 +496,7 @@ function NewAnalysis() {
                         border: '1px solid', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         borderColor: fw.checked ? 'var(--accent)' : 'var(--border-strong)',
                         background: fw.checked ? 'var(--accent)' : 'transparent',
-                        transition: 'all var(--transition-fast)',
+                        transition: 'border-color var(--transition-fast), background-color var(--transition-fast)',
                       }}>
                         {fw.checked && <CheckCircle size={12} color="var(--accent-ink)" />}
                       </div>
@@ -501,7 +504,7 @@ function NewAnalysis() {
                         <div style={{ fontSize: '14px', fontWeight: fw.checked ? '600' : '500', color: fw.checked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{fw.label}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{fw.detail}</div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
 

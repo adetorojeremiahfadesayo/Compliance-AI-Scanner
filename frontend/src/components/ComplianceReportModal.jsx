@@ -77,7 +77,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '8px', padding: '8px', cursor: 'pointer',
             color: 'var(--text-secondary)', display: 'flex', alignItems: 'center',
-            transition: 'all 0.15s ease', zIndex: 1,
+            transition: 'background-color 0.15s ease, color 0.15s ease', zIndex: 1,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -224,7 +224,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               background: 'transparent', border: '1px solid var(--border-primary)',
               borderRadius: '10px', padding: '12px 24px', cursor: 'pointer',
               color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600',
-              transition: 'all 0.15s ease',
+              transition: 'border-color 0.15s ease, color 0.15s ease',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text-secondary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -238,10 +238,10 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               borderRadius: '10px', padding: '12px 28px', cursor: 'pointer',
               color: 'var(--accent-ink)', fontSize: '14px', fontWeight: '700',
               display: 'flex', alignItems: 'center', gap: '8px',
-              transition: 'all 0.15s ease',
+              transition: 'box-shadow 0.15s ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(var(--accent-rgb),0.4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 20px rgba(var(--accent-rgb),0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
           >
             <Shield size={16} />
             View Full Report
