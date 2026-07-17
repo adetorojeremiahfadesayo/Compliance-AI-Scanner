@@ -1,0 +1,29 @@
+# Compliance Autopilot CI gate
+# Copy to .github/workflows/compliance-ci.yml in the repository you want gated.
+# Configure repository variables:
+#   AUTOPILOT_URL         e.g. https://autopilot.example.com
+#   AUTOPILOT_PROJECT_ID  the Compliance Autopilot project id for this repo
+name: Compliance Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  compliance-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check compliance score
+        env:
+          AUTOPILOT_URL: ${{ vars.AUTOPILOT_URL }}
+          PROJECT_ID: ${{ vars.AUTOPILOT_PROJECT_ID }}
+          THRESHOLD: "60"
+        run: |
+          status=$(curl -sf "$AUTOPILOT_URL/api/projects/$PROJECT_ID/ci-status?threshold=$THRESHOLD")
+          echo "$status" | jq .
+          passing=$(echo "$status" | jq -r '.passing')
+          if [ "$passing" != "true" ]; then
+            echo "::error::Compliance score below threshold — see Compliance Autopilot report."
+            exit 1
+          fi

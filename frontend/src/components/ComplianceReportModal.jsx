@@ -21,9 +21,9 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
   const criticalGaps = (result?.gaps || []).filter(g => g.priority === 'critical' && g.status !== 'compliant');
   const topGaps = criticalGaps.slice(0, 3);
 
-  const verdictColor = isPassing ? '#3FB950' : '#F85149';
-  const verdictBg = isPassing ? 'rgba(63, 185, 80, 0.08)' : 'rgba(248, 81, 73, 0.08)';
-  const verdictBorder = isPassing ? 'rgba(63, 185, 80, 0.25)' : 'rgba(248, 81, 73, 0.25)';
+  const verdictColor = isPassing ? 'var(--status-compliant)' : 'var(--status-non-compliant)';
+  const verdictBg = isPassing ? 'rgba(var(--ok-rgb), 0.08)' : 'rgba(var(--risk-rgb), 0.08)';
+  const verdictBorder = isPassing ? 'rgba(var(--ok-rgb), 0.25)' : 'rgba(var(--risk-rgb), 0.25)';
 
   const recommendations = isPassing ? [
     'Schedule quarterly re-scans to catch regressions',
@@ -57,7 +57,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
     >
       <div
         style={{
-          background: 'linear-gradient(145deg, #0D1117, #161B22)',
+          background: 'var(--bg-card)',
           border: `1px solid ${verdictBorder}`,
           borderRadius: '20px',
           width: '100%',
@@ -66,7 +66,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
           overflowY: 'auto',
           position: 'relative',
           animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-          boxShadow: `0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px ${verdictBorder}, 0 0 60px ${isPassing ? 'rgba(63,185,80,0.08)' : 'rgba(248,81,73,0.08)'}`,
+          boxShadow: `0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px ${verdictBorder}, 0 0 60px ${isPassing ? 'rgba(var(--ok-rgb),0.08)' : 'rgba(var(--risk-rgb),0.08)'}`,
         }}
       >
         {/* Close Button */}
@@ -77,7 +77,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '8px', padding: '8px', cursor: 'pointer',
             color: 'var(--text-secondary)', display: 'flex', alignItems: 'center',
-            transition: 'all 0.15s ease', zIndex: 1,
+            transition: 'background-color 0.15s ease, color 0.15s ease', zIndex: 1,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -132,8 +132,8 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
                     height: '100%', borderRadius: '999px',
                     width: `${score}%`,
                     background: isPassing
-                      ? 'linear-gradient(90deg, #3FB950, #56D364)'
-                      : 'linear-gradient(90deg, #F85149, #FF7B72)',
+                      ? 'var(--gradient-success)'
+                      : 'var(--gradient-danger)',
                     transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
                 </div>
@@ -141,15 +141,15 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <StatChip label="Total Gaps" value={result?.totalGaps ?? (result?.gaps?.length || 0)} color="var(--text-secondary)" />
-                <StatChip label="Critical" value={result?.criticalGaps ?? criticalGaps.length} color="#F85149" />
-                <StatChip label="Good At" value="60%+" color={isPassing ? '#3FB950' : '#F85149'} />
+                <StatChip label="Critical" value={result?.criticalGaps ?? criticalGaps.length} color="var(--status-non-compliant)" />
+                <StatChip label="Good At" value="60%+" color={isPassing ? 'var(--status-compliant)' : 'var(--status-non-compliant)'} />
               </div>
 
               {/* Threshold bar */}
               <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                 {isPassing
-                  ? <><TrendingUp size={14} color="#3FB950" /> <span style={{ color: '#3FB950' }}>{Math.round(score - 60)}% above</span> the 60% good-compliance threshold</>
-                  : <><TrendingDown size={14} color="#F85149" /> <span style={{ color: '#F85149' }}>{Math.round(60 - score)}% below</span> the 60% threshold — bad compliance risk</>
+                  ? <><TrendingUp size={14} color="var(--status-compliant)" /> <span style={{ color: 'var(--status-compliant)' }}>{Math.round(score - 60)}% above</span> the 60% good-compliance threshold</>
+                  : <><TrendingDown size={14} color="var(--status-non-compliant)" /> <span style={{ color: 'var(--status-non-compliant)' }}>{Math.round(60 - score)}% below</span> the 60% threshold. High compliance risk.</>
                 }
               </div>
             </div>
@@ -167,15 +167,15 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
                 <div key={idx} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '12px',
                   padding: '14px 16px',
-                  background: 'rgba(248, 81, 73, 0.05)',
-                  border: '1px solid rgba(248, 81, 73, 0.15)',
+                  background: 'rgba(var(--risk-rgb), 0.05)',
+                  border: '1px solid rgba(var(--risk-rgb), 0.15)',
                   borderRadius: '10px',
                 }}>
                   <div style={{
                     width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
-                    background: 'rgba(248, 81, 73, 0.15)', border: '1px solid rgba(248, 81, 73, 0.3)',
+                    background: 'rgba(var(--risk-rgb), 0.15)', border: '1px solid rgba(var(--risk-rgb), 0.3)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', fontWeight: '700', color: '#F85149', marginTop: '1px',
+                    fontSize: '11px', fontWeight: '700', color: 'var(--status-non-compliant)', marginTop: '1px',
                   }}>{idx + 1}</div>
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '3px' }}>
@@ -184,7 +184,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                       {gap.gap_description}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#F85149', marginTop: '4px', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--status-non-compliant)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
                       {gap.requirement?.article_reference} · {gap.code_location}
                     </div>
                   </div>
@@ -204,11 +204,11 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', lineHeight: '1.5' }}>
                 <div style={{
                   width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                  background: isPassing ? 'rgba(63, 185, 80, 0.12)' : 'rgba(88, 166, 255, 0.12)',
-                  border: `1px solid ${isPassing ? 'rgba(63,185,80,0.3)' : 'rgba(88,166,255,0.3)'}`,
+                  background: isPassing ? 'rgba(var(--ok-rgb), 0.12)' : 'rgba(var(--accent-rgb), 0.12)',
+                  border: `1px solid ${isPassing ? 'rgba(var(--ok-rgb),0.3)' : 'rgba(var(--accent-rgb),0.3)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '10px', fontWeight: '700',
-                  color: isPassing ? '#3FB950' : 'var(--accent-blue)', marginTop: '1px',
+                  color: isPassing ? 'var(--status-compliant)' : 'var(--accent-blue)', marginTop: '1px',
                 }}>{idx + 1}</div>
                 <span style={{ color: 'var(--text-secondary)' }}>{rec}</span>
               </div>
@@ -224,7 +224,7 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
               background: 'transparent', border: '1px solid var(--border-primary)',
               borderRadius: '10px', padding: '12px 24px', cursor: 'pointer',
               color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600',
-              transition: 'all 0.15s ease',
+              transition: 'border-color 0.15s ease, color 0.15s ease',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text-secondary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -236,12 +236,12 @@ function ComplianceReportModal({ result, industry, country, countryFlag, onClose
             style={{
               background: 'var(--gradient-primary)', border: 'none',
               borderRadius: '10px', padding: '12px 28px', cursor: 'pointer',
-              color: '#000', fontSize: '14px', fontWeight: '700',
+              color: 'var(--accent-ink)', fontSize: '14px', fontWeight: '700',
               display: 'flex', alignItems: 'center', gap: '8px',
-              transition: 'all 0.15s ease',
+              transition: 'box-shadow 0.15s ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(88,166,255,0.4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 20px rgba(var(--accent-rgb),0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
           >
             <Shield size={16} />
             View Full Report
@@ -257,7 +257,7 @@ function ScoreRing({ score, isPassing }) {
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (score / 100) * circumference;
-  const color = isPassing ? '#3FB950' : '#F85149';
+  const color = isPassing ? 'var(--status-compliant)' : 'var(--status-non-compliant)';
 
   return (
     <div style={{ position: 'relative', width: '130px', height: '130px', margin: '0 auto' }}>

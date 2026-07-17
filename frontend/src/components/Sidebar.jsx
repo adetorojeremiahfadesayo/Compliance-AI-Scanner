@@ -1,88 +1,43 @@
 import { NavLink } from 'react-router-dom';
-import { Shield, LayoutDashboard, PlusCircle, Globe, Zap } from 'lucide-react';
+import { LayoutDashboard, Plus, ShieldCheck } from 'lucide-react';
 
-function Sidebar() {
-  const baseLink = {
-    display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '11px 14px', borderRadius: 'var(--radius-md)',
-    textDecoration: 'none', transition: 'all var(--transition-fast)',
-    fontSize: '14px', fontWeight: '500',
-  };
+const NAV_ITEMS = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/new-analysis', label: 'New Scan', icon: Plus },
+];
 
-  const linkStyle = ({ isActive }) => isActive ? {
-    ...baseLink,
-    color: '#000',
-    background: 'var(--gradient-primary)',
-    fontWeight: '600',
-    boxShadow: '0 4px 12px rgba(88,166,255,0.25)',
-  } : {
-    ...baseLink,
-    color: 'var(--text-secondary)',
-  };
-
+function Sidebar({ mobileOpen = false, onClose }) {
   return (
-    <aside style={{
-      width: '240px',
-      backgroundColor: 'var(--bg-secondary)',
-      borderRight: '1px solid var(--border-primary)',
-      height: '100vh',
-      position: 'fixed', left: 0, top: 0,
-      display: 'flex', flexDirection: 'column',
-      padding: '24px 16px',
-      zIndex: 100,
-    }}>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', padding: '0 4px' }}>
-        <div style={{
-          background: 'var(--gradient-primary)', padding: '8px', borderRadius: 'var(--radius-md)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(88,166,255,0.3)',
-        }}>
-          <Shield size={18} color="#000" />
-        </div>
+    <aside className={`navigation-rail${mobileOpen ? ' is-open' : ''}`} aria-label="Primary navigation">
+      <div className="navigation-rail__brand">
+        <span className="navigation-rail__mark"><ShieldCheck size={20} /></span>
         <div>
-          <span style={{ display: 'block', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.4px' }}>ComplianceOS</span>
-          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>GLOBAL ENGINE</span>
+          <strong>Compliance</strong>
+          <span>Autopilot</span>
         </div>
       </div>
 
-      {/* Tagline chip */}
-      <div style={{ marginBottom: '28px', padding: '0 4px' }}>
-        <div style={{ padding: '6px 10px', borderRadius: '8px', background: 'rgba(88,166,255,0.06)', border: '1px solid rgba(88,166,255,0.12)', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Globe size={11} color="var(--accent-blue)" />
-          <span>25 countries · 3 industries</span>
-        </div>
-      </div>
-
-      {/* Nav links */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-tertiary)', letterSpacing: '1.5px', padding: '0 14px', marginBottom: '6px', textTransform: 'uppercase' }}>
-          Navigation
-        </div>
-        <NavLink to="/" end style={linkStyle}>
-          <LayoutDashboard size={17} />
-          <span>Dashboard</span>
-        </NavLink>
-        <NavLink to="/new-analysis" style={linkStyle}>
-          <PlusCircle size={17} />
-          <span>New Scan</span>
-        </NavLink>
+      <nav className="navigation-rail__nav">
+        <span className="navigation-rail__label">Workspace</span>
+        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            onClick={onClose}
+            className={({ isActive }) => `navigation-rail__link${isActive ? ' is-active' : ''}`}
+          >
+            <Icon size={17} strokeWidth={1.7} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
       </nav>
 
-      {/* Footer */}
-      <div style={{ borderTop: '1px solid var(--border-primary)', paddingTop: '16px' }}>
-        <div style={{
-          padding: '12px 14px', borderRadius: 'var(--radius-md)',
-          background: 'linear-gradient(135deg, rgba(88,166,255,0.06), rgba(188,140,255,0.06))',
-          border: '1px solid rgba(88,166,255,0.12)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <Zap size={12} color="var(--accent-blue)" />
-            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent-blue)' }}>Rule Pack Engine</span>
-          </div>
-          <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.5' }}>
-            Source-backed rule packs for your selected country and industry
-          </p>
+      <div className="navigation-rail__foot">
+        <span className="status-dot status-live" aria-hidden="true" />
+        <div>
+          <strong>System ready</strong>
+          <span>Secure intelligence</span>
         </div>
       </div>
     </aside>

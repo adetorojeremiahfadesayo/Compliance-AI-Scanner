@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from app.config import settings
 from app.main import app
 from app.models.database import (
     Base,
@@ -84,7 +85,7 @@ def seed_completed_analysis(SessionLocal):
         status="complete",
         overall_score=50.0,
         model_provider="Qwen Cloud",
-        model_names="qwen-max, qwen-plus",
+        model_names=f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}",
         token_usage='{"input_tokens": 100, "output_tokens": 25, "total_tokens": 125}',
         remediation_approval_status="pending_review",
     )
@@ -121,7 +122,7 @@ def test_list_analyses_returns_real_scan_metadata(client):
     assert payload[0]["project"]["name"] == "Checkout API"
     assert payload[0]["regulation"]["name"] == "GDPR Article 32"
     assert payload[0]["model_provider"] == "Qwen Cloud"
-    assert payload[0]["model_names"] == "qwen-max, qwen-plus"
+    assert payload[0]["model_names"] == f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}"
     assert payload[0]["remediation_approval_status"] == "pending_review"
     assert payload[0]["gaps"][0]["priority"] == "high"
 
@@ -161,5 +162,5 @@ def test_report_includes_qwen_metadata_and_approval_state(client):
     assert response.status_code == 200
     markdown = response.text
     assert "Qwen Cloud" in markdown
-    assert "qwen-max, qwen-plus" in markdown
+    assert f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}" in markdown
     assert "pending_review" in markdown

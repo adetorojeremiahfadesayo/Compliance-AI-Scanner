@@ -13,6 +13,82 @@ from app.agents.regulation_parser import regulation_parser_agent
 logger = logging.getLogger("app.api.regulations")
 router = APIRouter(prefix="/regulations", tags=["regulations"])
 
+_RULE_PACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "knowledge", "rule_packs.json")
+_rule_packs_cache = None
+
+
+def _load_rule_packs():
+    """Loads the industry×country rule packs from disk (cached in memory)."""
+    global _rule_packs_cache
+    if _rule_packs_cache is None:
+        with open(_RULE_PACKS_PATH, "r", encoding="utf-8") as f:
+            _rule_packs_cache = json.load(f)
+    return _rule_packs_cache
+
+
+@router.get("/rule-pack")
+def get_rule_pack(industry: str, country: str):
+    """Returns the source-backed compliance rule pack for an industry and country."""
+    try:
+        packs = _load_rule_packs()
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Rule pack knowledge base not found.")
+
+    industry_packs = packs.get(industry)
+    if not industry_packs:
+        raise HTTPException(status_code=404, detail=f"No rule packs for industry '{industry}'.")
+
+    pack = industry_packs.get(country)
+    if not pack:
+        raise HTTPException(status_code=404, detail=f"No rule pack for {industry}/{country}.")
+
+    return {"industry": industry, "country": country, **pack}
+
+@router.post("/from-rule-pack", response_model=RegulationSummary)
+def create_regulation_from_rule_pack(industry: str, country: str, db: Session = Depends(get_db)):
+    """Materializes an industry/country rule pack as a scannable Regulation with pre-seeded requirements."""
+    try:
+        packs = _load_rule_packs()
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Rule pack knowledge base not found.")
+
+    pack = (packs.get(industry) or {}).get(country)
+    if not pack:
+        raise HTTPException(status_code=404, detail=f"No rule pack for {industry}/{country}.")
+
+    reg_name = f"{pack['framework']} ({country.upper()})"
+    existing = db.query(Regulation).filter(Regulation.name == reg_name).first()
+    if existing:
+        return existing
+
+    db_reg = Regulation(
+        name=reg_name,
+        source=pack["authority"],
+        version=pack.get("last_updated", "1.0"),
+        full_text=(
+            f"Source-backed {industry} rule pack for {country.upper()}: {pack['framework']}. "
+            f"Authority: {pack['authority']}. Source: {pack.get('source_url', 'n/a')}"
+        ),
+    )
+    db.add(db_reg)
+    db.commit()
+    db.refresh(db_reg)
+
+    for pack_req in pack.get("requirements", []):
+        db.add(Requirement(
+            regulation_id=db_reg.id,
+            article_reference=pack_req["ref"],
+            title=pack_req["title"],
+            description=pack_req["description"],
+            technical_requirement=f"Implement and document controls: {pack_req['description']}",
+            severity=pack_req.get("severity", "high"),
+            category=pack_req.get("category", "security"),
+            verification_criteria=f"Inspect code paths and configuration for {pack_req.get('category', 'security')} controls.",
+        ))
+    db.commit()
+    db.refresh(db_reg)
+    return db_reg
+
 @router.get("/templates", response_model=List[dict])
 def get_templates():
     """Returns the list of pre-loaded GDPR templates from the knowledge base."""

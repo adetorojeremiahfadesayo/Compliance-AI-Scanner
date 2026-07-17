@@ -9,7 +9,7 @@ RUN npm run build
 # Serve stage
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# Copy standard nginx config for routing fallback in SPA if needed
-# EXPOSE 80
+# SPA routing fallback + reverse proxy for /api and /ws to the backend service.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

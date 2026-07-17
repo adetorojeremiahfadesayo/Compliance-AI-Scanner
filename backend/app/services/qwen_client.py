@@ -2,12 +2,27 @@
 import json
 import logging
 import os
+import re
 from typing import List, Dict, Any, AsyncGenerator, Optional
-from openai import AsyncOpenAI
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from openai import AsyncOpenAI, AuthenticationError, PermissionDeniedError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_not_exception_type
 from app.config import settings
 
 logger = logging.getLogger("app.services.qwen_client")
+
+# Retrying an auth/permission failure just burns time before the inevitable fallback,
+# so those are treated as terminal; everything else (network, rate limit, 5xx) retries.
+_NON_RETRYABLE = (AuthenticationError, PermissionDeniedError)
+
+_JSON_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
+
+
+def _strip_json_fences(content: str) -> str:
+    """Removes markdown code fences that models sometimes wrap JSON in."""
+    text = (content or "").strip()
+    if text.startswith("```"):
+        text = _JSON_FENCE_RE.sub("", text).strip()
+    return text
 
 class QwenClient:
     """Wrapper around the Qwen Cloud OpenAI-compatible API."""
@@ -47,7 +62,7 @@ class QwenClient:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=retry_if_exception_type(Exception),
+        retry=retry_if_not_exception_type(_NON_RETRYABLE),
         reraise=True
     )
     async def chat(
@@ -85,17 +100,24 @@ class QwenClient:
     ) -> Dict[str, Any]:
         """Convenience method that calls Qwen in JSON mode and parses the result."""
         content = await self.chat(messages, model=model, json_mode=True)
+        cleaned = _strip_json_fences(content)
         try:
-            return json.loads(content)
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response from Qwen: {e}. Raw content: {content}")
-            # Fallback regex extraction or simple correction if needed. For now, raise.
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            # Last resort: pull the first balanced-looking JSON object out of the text.
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except json.JSONDecodeError:
+                    pass
+            logger.error(f"Failed to parse JSON response from Qwen. Raw content: {content}")
             raise ValueError(f"Qwen response was not valid JSON: {content}")
 
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=retry_if_exception_type(Exception),
+        retry=retry_if_not_exception_type(_NON_RETRYABLE),
         reraise=True
     )
     async def chat_with_tools(
