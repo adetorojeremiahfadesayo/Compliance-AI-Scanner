@@ -18,7 +18,9 @@ from app.models.database import (
     Regulation,
     Requirement,
     Analysis,
+    ComplianceGap,
 )
+from app.agents import remediation_engine as remediation_engine_module
 
 
 @pytest.fixture()
@@ -302,6 +304,149 @@ def test_create_fix_pr_rejects_project_without_repo_url(client):
 
     assert response.status_code == 400
     assert "repository" in response.json()["detail"].lower()
+
+
+# --- real code-fix generation -----------------------------------------------
+
+def test_generate_fixes_produces_real_diff_and_persists(client, monkeypatch, tmp_path):
+    test_client, SessionLocal = client
+
+    repo_dir = tmp_path / "demo-repo"
+    repo_dir.mkdir()
+    vulnerable_file = repo_dir / "app.py"
+    original_source = "def register(password):\n    user.password = password\n    save(user)\n"
+    vulnerable_file.write_text(original_source, encoding="utf-8")
+
+    project_id = seed_project(SessionLocal)
+    db = SessionLocal()
+    project = db.query(Project).filter(Project.id == project_id).first()
+    project.repo_path = str(repo_dir)
+    db.commit()
+    db.close()
+
+    regulation_id = seed_regulation(SessionLocal)
+    analysis_id = seed_completed_analysis(SessionLocal, project_id, regulation_id, score=40.0, approved=False)
+
+    db = SessionLocal()
+    requirement = Requirement(
+        regulation_id=regulation_id,
+        article_reference="Article 32(1)(a)",
+        title="Password Hashing",
+        description="Passwords must not be stored in plaintext.",
+        technical_requirement="Use bcrypt or argon2.",
+        severity="critical",
+        category="security",
+        verification_criteria="Check password storage.",
+    )
+    db.add(requirement)
+    db.commit()
+    db.refresh(requirement)
+    gap = ComplianceGap(
+        analysis_id=analysis_id,
+        requirement_id=requirement.id,
+        status="non_compliant",
+        evidence="password stored in plaintext",
+        gap_description="User passwords are stored without hashing.",
+        remediation_plan="Hash the password with bcrypt before saving it.",
+        code_location="app.py:L2",
+        priority="critical",
+        agent_name="GapDetector",
+    )
+    db.add(gap)
+    db.commit()
+    db.refresh(gap)
+    gap_id = gap.id
+    db.close()
+
+    corrected_source = "def register(password):\n    user.password = hash_password(password)\n    save(user)\n"
+
+    async def fake_generate_code_fix(**kwargs):
+        return corrected_source
+
+    monkeypatch.setattr(
+        remediation_engine_module.remediation_engine_agent,
+        "generate_code_fix",
+        fake_generate_code_fix,
+    )
+
+    response = test_client.post(f"/api/analysis/{analysis_id}/generate-fixes", json={"gap_ids": [gap_id]})
+
+    assert response.status_code == 200
+    results = response.json()
+    assert len(results) == 1
+    assert results[0]["has_fix"] is True
+    assert results[0]["file_path"] == "app.py"
+    assert "hash_password" in results[0]["diff"]
+
+    # Persisted on the gap, and re-fetchable without regenerating.
+    fetched = test_client.get(f"/api/analysis/{analysis_id}/code-fixes")
+    assert fetched.status_code == 200
+    fetched_results = fetched.json()
+    assert len(fetched_results) == 1
+    assert fetched_results[0]["has_fix"] is True
+    assert "hash_password" in fetched_results[0]["diff"]
+
+
+def test_generate_fixes_skips_gap_when_model_declines(client, monkeypatch, tmp_path):
+    test_client, SessionLocal = client
+
+    repo_dir = tmp_path / "demo-repo"
+    repo_dir.mkdir()
+    (repo_dir / "app.py").write_text("password = 'x'\n", encoding="utf-8")
+
+    project_id = seed_project(SessionLocal)
+    db = SessionLocal()
+    project = db.query(Project).filter(Project.id == project_id).first()
+    project.repo_path = str(repo_dir)
+    db.commit()
+    db.close()
+
+    regulation_id = seed_regulation(SessionLocal)
+    analysis_id = seed_completed_analysis(SessionLocal, project_id, regulation_id, score=40.0)
+
+    db = SessionLocal()
+    requirement = Requirement(
+        regulation_id=regulation_id,
+        article_reference="Article 32(1)(a)",
+        title="Password Hashing",
+        description="x",
+        technical_requirement="x",
+        severity="critical",
+        category="security",
+        verification_criteria="x",
+    )
+    db.add(requirement)
+    db.commit()
+    db.refresh(requirement)
+    gap = ComplianceGap(
+        analysis_id=analysis_id,
+        requirement_id=requirement.id,
+        status="non_compliant",
+        remediation_plan="Hash it.",
+        code_location="app.py:L1",
+        priority="critical",
+    )
+    db.add(gap)
+    db.commit()
+    db.refresh(gap)
+    gap_id = gap.id
+    db.close()
+
+    async def declining_fix(**kwargs):
+        return None
+
+    monkeypatch.setattr(
+        remediation_engine_module.remediation_engine_agent,
+        "generate_code_fix",
+        declining_fix,
+    )
+
+    response = test_client.post(f"/api/analysis/{analysis_id}/generate-fixes", json={"gap_ids": [gap_id]})
+
+    assert response.status_code == 200
+    results = response.json()
+    assert results[0]["has_fix"] is False
+    assert results[0]["error"]
 
 
 # --- GitHub push webhook -----------------------------------------------------

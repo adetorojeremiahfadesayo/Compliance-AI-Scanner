@@ -1,20 +1,23 @@
 # analysis.py
+import asyncio
+import difflib
 import json
 import logging
 import os
-import re
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db, Analysis, Project, Regulation, Requirement, ComplianceGap, AuditLog
-from app.models.schemas import AnalysisCreate, AnalysisResponse, ComplianceGapResponse, AuditLogResponse, AnalysisProgress, RemediationApprovalRequest, RegressionCheckResponse, CodeInspectorResponse, MultiAnalysisCreate, FixPrResponse
+from app.models.schemas import AnalysisCreate, AnalysisResponse, ComplianceGapResponse, AuditLogResponse, AnalysisProgress, RemediationApprovalRequest, RegressionCheckResponse, CodeInspectorResponse, MultiAnalysisCreate, FixPrResponse, GenerateFixesRequest, CreateFixPrRequest, CodeFixResponse
 from app.agents.orchestrator import orchestrator
 from app.agents.monitor_agent import monitor_agent
+from app.agents.remediation_engine import remediation_engine_agent
 from app.api.websocket import manager
 from app.services.demo_catalog import get_demo_scan
 from app.services.github_service import github_service
+from app.services.code_location import parse_code_location, resolve_repo_file, display_repo_path
 from app.services.remediation_service import (
     approve_remediation_record,
     create_fix_pr_for_analysis,
@@ -22,62 +25,21 @@ from app.services.remediation_service import (
 )
 from app.config import settings
 
+MAX_FIX_FILE_CHARS = 20_000  # keeps per-fix token spend bounded on a limited plan
+
 DEMO_MODEL_NAMES = f"{settings.QWEN_MAX_MODEL}, {settings.QWEN_PLUS_MODEL}"
 
 logger = logging.getLogger("app.api.analysis")
 router = APIRouter(prefix="/analysis", tags=["analysis"])
-CODE_LOCATION_RE = re.compile(r"^(?P<path>.+?)(?::L(?P<start>\d+)(?:-L?(?P<end>\d+))?)?$")
 
 async def progress_broadcaster(progress: AnalysisProgress):
     """Callback to broadcast progress packets to WebSocket listeners."""
     logger.debug(f"Broadcasting websocket packet for analysis {progress.analysis_id}")
     await manager.broadcast(progress.analysis_id, progress.model_dump(mode="json"))
 
-def _parse_code_location(code_location: str):
-    match = CODE_LOCATION_RE.match((code_location or "").strip())
-    if not match:
-        return None
-
-    file_path = (match.group("path") or "").strip().replace("\\", os.sep).replace("/", os.sep)
-    if not file_path:
-        return None
-
-    start = int(match.group("start")) if match.group("start") else None
-    end = int(match.group("end")) if match.group("end") else start
-    if start and end and end < start:
-        start, end = end, start
-
-    return {
-        "file_path": file_path,
-        "start_line": start,
-        "end_line": end,
-    }
-
-def _resolve_repo_file(repo_path: str, file_path: str):
-    repo_root = os.path.abspath(repo_path)
-    relative_path = file_path
-    repo_name = os.path.basename(repo_root.rstrip(os.sep))
-    path_parts = [part for part in relative_path.split(os.sep) if part]
-    if path_parts and path_parts[0] == repo_name:
-        relative_path = os.sep.join(path_parts[1:])
-
-    candidate = relative_path if os.path.isabs(relative_path) else os.path.join(repo_root, relative_path)
-    candidate = os.path.abspath(candidate)
-    try:
-        if os.path.commonpath([repo_root, candidate]) != repo_root:
-            return None
-    except ValueError:
-        return None
-    if not os.path.isfile(candidate):
-        return None
-    return candidate
-
-def _display_repo_path(repo_path: str, file_path: str):
-    repo_root = os.path.abspath(repo_path)
-    try:
-        return os.path.relpath(file_path, repo_root).replace("\\", "/")
-    except ValueError:
-        return os.path.basename(file_path)
+_parse_code_location = parse_code_location
+_resolve_repo_file = resolve_repo_file
+_display_repo_path = display_repo_path
 
 def _get_or_create_project(db: Session, name: str, **defaults) -> Project:
     """Reuses a project by name so repeated demo runs don't spawn duplicate rows."""
@@ -436,8 +398,148 @@ def approve_remediation(analysis_id: int, req: RemediationApprovalRequest, db: S
     approve_remediation_record(db, analysis, req.note, approver="HumanReviewer")
     return analysis
 
+def _actionable_gaps_query(db: Session, analysis_id: int, gap_ids):
+    query = db.query(ComplianceGap).filter(
+        ComplianceGap.analysis_id == analysis_id,
+        ComplianceGap.status != "compliant",
+    )
+    if gap_ids is not None:
+        query = query.filter(ComplianceGap.id.in_(gap_ids))
+    return query.all()
+
+async def _generate_single_fix(gap: ComplianceGap, project: Project) -> tuple[CodeFixResponse, str, str]:
+    """Builds one gap's fix. Returns (response, corrected_code_or_empty, original_content_or_empty).
+
+    Does no database writes — the caller persists after all gaps in the batch
+    have resolved, since these run concurrently via asyncio.gather and a
+    shared synchronous Session shouldn't be committed from interleaved calls.
+    """
+    base = CodeFixResponse(
+        gap_id=gap.id,
+        requirement_title=gap.requirement.title if gap.requirement else "Requirement",
+        article_reference=gap.requirement.article_reference if gap.requirement else "N/A",
+        priority=gap.priority or "medium",
+        has_fix=False,
+    )
+    parsed = _parse_code_location(gap.code_location or "")
+    if not parsed:
+        base.error = "No resolvable file location for this finding."
+        return base, "", ""
+
+    resolved_file = _resolve_repo_file(project.repo_path, parsed["file_path"])
+    if not resolved_file:
+        base.error = "Flagged file not found in the scanned repository."
+        return base, "", ""
+    base.file_path = _display_repo_path(project.repo_path, resolved_file)
+
+    if not gap.remediation_plan:
+        base.error = "No remediation plan generated yet for this finding."
+        return base, "", ""
+
+    with open(resolved_file, "r", encoding="utf-8", errors="replace") as f:
+        original_content = f.read()
+
+    if len(original_content) > MAX_FIX_FILE_CHARS:
+        base.error = "File is too large for automatic fix generation — review manually."
+        return base, "", ""
+
+    corrected = await remediation_engine_agent.generate_code_fix(
+        gap_description=gap.gap_description or gap.evidence or gap.requirement.title,
+        remediation_plan=gap.remediation_plan,
+        file_path=base.file_path,
+        original_content=original_content,
+    )
+    if not corrected or corrected == original_content:
+        base.error = "Model could not produce a safe automatic fix for this finding."
+        return base, "", ""
+
+    diff = "\n".join(difflib.unified_diff(
+        original_content.splitlines(),
+        corrected.splitlines(),
+        fromfile=f"a/{base.file_path}",
+        tofile=f"b/{base.file_path}",
+        lineterm="",
+    ))
+    base.has_fix = True
+    base.diff = diff
+    return base, corrected, original_content
+
+@router.post("/{analysis_id}/generate-fixes", response_model=List[CodeFixResponse])
+async def generate_code_fixes(analysis_id: int, req: GenerateFixesRequest, db: Session = Depends(get_db)):
+    """Generates real corrected file content for selected (or all) actionable gaps.
+
+    This is what makes "Create Fix PR" ship actual code changes instead of just
+    a markdown remediation guide — each targeted gap's flagged file is rewritten
+    by Qwen and stored on the gap so it can be previewed, then included in the PR.
+    Fixes are generated concurrently: each full-file rewrite can take 30-120s,
+    so running them sequentially would make a 3-finding batch take minutes.
+    """
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis session not found.")
+    project = analysis.project
+    if not project or not project.repo_path or not os.path.isdir(project.repo_path):
+        raise HTTPException(status_code=400, detail="Project repository path not found — run a scan first.")
+
+    gaps = _actionable_gaps_query(db, analysis_id, req.gap_ids)
+    outcomes = await asyncio.gather(*(_generate_single_fix(gap, project) for gap in gaps))
+
+    results = []
+    for gap, (base, corrected, _original) in zip(gaps, outcomes):
+        if corrected:
+            gap.corrected_code = corrected
+        results.append(base)
+    db.commit()
+
+    db.add(AuditLog(
+        analysis_id=analysis_id,
+        agent_name="RemediationEngine",
+        action="code_fixes_generated",
+        details=f"Generated {sum(1 for r in results if r.has_fix)}/{len(results)} real code fixes.",
+        timestamp=datetime.utcnow(),
+    ))
+    db.commit()
+    return results
+
+@router.get("/{analysis_id}/code-fixes", response_model=List[CodeFixResponse])
+def get_code_fixes(analysis_id: int, db: Session = Depends(get_db)):
+    """Returns previously generated code fixes (diff view) for a scan's actionable gaps."""
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis session not found.")
+    project = analysis.project
+
+    gaps = _actionable_gaps_query(db, analysis_id, None)
+    results = []
+    for gap in gaps:
+        base = CodeFixResponse(
+            gap_id=gap.id,
+            requirement_title=gap.requirement.title if gap.requirement else "Requirement",
+            article_reference=gap.requirement.article_reference if gap.requirement else "N/A",
+            priority=gap.priority or "medium",
+            has_fix=False,
+        )
+        parsed = _parse_code_location(gap.code_location or "")
+        resolved_file = _resolve_repo_file(project.repo_path, parsed["file_path"]) if (parsed and project and project.repo_path) else None
+        if resolved_file:
+            base.file_path = _display_repo_path(project.repo_path, resolved_file)
+
+        if gap.corrected_code and resolved_file and os.path.isfile(resolved_file):
+            with open(resolved_file, "r", encoding="utf-8", errors="replace") as f:
+                original_content = f.read()
+            base.has_fix = True
+            base.diff = "\n".join(difflib.unified_diff(
+                original_content.splitlines(),
+                gap.corrected_code.splitlines(),
+                fromfile=f"a/{base.file_path}",
+                tofile=f"b/{base.file_path}",
+                lineterm="",
+            ))
+        results.append(base)
+    return results
+
 @router.post("/{analysis_id}/create-fix-pr", response_model=FixPrResponse)
-async def create_fix_pr(analysis_id: int, db: Session = Depends(get_db)):
+async def create_fix_pr(analysis_id: int, req: CreateFixPrRequest = Body(default=None), db: Session = Depends(get_db)):
     """Pushes the approved remediation package to a branch and opens a GitHub pull request."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
     if not analysis:
@@ -445,8 +547,9 @@ async def create_fix_pr(analysis_id: int, db: Session = Depends(get_db)):
     if analysis.project and analysis.project.repo_path and not os.path.isdir(analysis.project.repo_path):
         raise HTTPException(status_code=400, detail="Local clone of the repository not found — run a scan first.")
 
+    gap_ids = req.gap_ids if req else None
     try:
-        result = await create_fix_pr_for_analysis(db, analysis)
+        result = await create_fix_pr_for_analysis(db, analysis, gap_ids=gap_ids)
     except FixPrError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return FixPrResponse(**result)

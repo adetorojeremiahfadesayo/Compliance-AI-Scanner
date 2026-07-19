@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Activity, ArrowRight, Bot, Check, GitPullRequest, Loader2, Radar, UserCheck, Zap } from 'lucide-react';
 import GapMatrix from '../components/GapMatrix';
+import CodeFixPanel from '../components/CodeFixPanel';
 import AgentTimeline from '../components/AgentTimeline';
 import ComplianceReportModal from '../components/ComplianceReportModal';
 import ConfidenceInstrument from '../components/ConfidenceInstrument';
@@ -145,11 +146,11 @@ function AnalysisView() {
     }
   };
 
-  const handleCreateFixPr = async () => {
+  const handleCreateFixPr = async (gapIds = null) => {
     setCreatingPr(true);
     setPrResult(null);
     try {
-      const result = await api.createFixPr(id);
+      const result = await api.createFixPr(id, gapIds);
       setPrResult(result);
       setAuditLogs((current) => [...current, {
         agent_name: 'RemediationEngine',
@@ -304,6 +305,17 @@ function AnalysisView() {
             <div className="is-warning"><span>Persistent gaps</span><strong>{regressionResult.persistent_gaps.length}</strong></div>
           </div>
         </OperationalPanel>
+      ) : null}
+
+      {analysis?.status === 'complete' && !offlineMode ? (
+        <CodeFixPanel
+          analysisId={id}
+          gaps={gaps}
+          repoUrl={analysis?.project?.repo_url}
+          approvalStatus={analysis?.remediation_approval_status}
+          creatingPr={creatingPr}
+          onCreatePr={handleCreateFixPr}
+        />
       ) : null}
 
       <section className="confidence-stage">

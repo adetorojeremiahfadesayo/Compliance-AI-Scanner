@@ -168,6 +168,22 @@ class FixPrResponse(BaseModel):
     pr_url: Optional[str] = None
     message: str
 
+class GenerateFixesRequest(BaseModel):
+    gap_ids: Optional[List[int]] = None  # None = generate for every actionable gap
+
+class CreateFixPrRequest(BaseModel):
+    gap_ids: Optional[List[int]] = None  # None = include every gap with a remediation plan
+
+class CodeFixResponse(BaseModel):
+    gap_id: int
+    requirement_title: str
+    article_reference: str
+    file_path: Optional[str] = None
+    priority: str
+    has_fix: bool
+    diff: Optional[str] = None
+    error: Optional[str] = None
+
 class AnalysisResponse(AnalysisBase):
     id: int
     status: str

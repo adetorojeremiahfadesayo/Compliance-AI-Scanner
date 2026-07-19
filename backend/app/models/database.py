@@ -139,6 +139,7 @@ class ComplianceGap(Base):
     evidence = Column(Text, nullable=True)
     gap_description = Column(Text, nullable=True)
     remediation_plan = Column(Text, nullable=True)
+    corrected_code = Column(Text, nullable=True)  # full corrected file content, when generated
     code_location = Column(String, nullable=True)
     priority = Column(String, default="medium")  # critical, high, medium, low
     agent_name = Column(String, default="GapDetector")
@@ -189,6 +190,7 @@ def init_db():
         _ensure_sqlite_column("analyses", "remediation_approved_at", "remediation_approved_at DATETIME")
         _ensure_sqlite_column("analyses", "remediation_approval_note", "remediation_approval_note TEXT")
         _ensure_sqlite_column("compliance_gaps", "agent_name", "agent_name VARCHAR DEFAULT 'GapDetector'")
+        _ensure_sqlite_column("compliance_gaps", "corrected_code", "corrected_code TEXT")
         _ensure_sqlite_column("projects", "monitor_enabled", "monitor_enabled INTEGER DEFAULT 0")
         _ensure_sqlite_column("projects", "monitor_interval_minutes", "monitor_interval_minutes INTEGER DEFAULT 60")
         _ensure_sqlite_column("projects", "last_monitor_run", "last_monitor_run DATETIME")
