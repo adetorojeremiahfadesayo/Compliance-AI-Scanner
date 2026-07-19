@@ -122,8 +122,15 @@ class GitHubService:
         content: str,
         commit_message: str,
         token: str,
+        extra_files: Optional[dict] = None,
     ):
-        """Commits a remediation file to a new branch of the cloned repo and pushes it."""
+        """Commits a remediation file (and optionally real corrected source files)
+        to a new branch of the cloned repo and pushes it.
+
+        extra_files maps repo-relative path -> new full file content. These are
+        real code changes (not documentation), so the resulting PR reflects
+        actual fixes, not just a written-up plan.
+        """
         owner_repo = parse_github_repo(repo_url)
         if not owner_repo:
             raise ValueError(f"Not a GitHub repository URL: {repo_url}")
@@ -135,6 +142,16 @@ class GitHubService:
             with open(os.path.join(repo_path, file_name), "w", encoding="utf-8") as f:
                 f.write(content)
             await self._run_git(["-C", repo_path, "add", file_name])
+
+            for rel_path, new_content in (extra_files or {}).items():
+                target_path = os.path.join(repo_path, rel_path)
+                if os.path.commonpath([os.path.abspath(repo_path), os.path.abspath(target_path)]) != os.path.abspath(repo_path):
+                    logger.warning(f"Skipping out-of-repo fix path: {rel_path}")
+                    continue
+                with open(target_path, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                await self._run_git(["-C", repo_path, "add", rel_path])
+
             await self._run_git([
                 "-C", repo_path,
                 "-c", "user.name=Compliance Autopilot",

@@ -134,13 +134,32 @@ export const api = {
     return res.json();
   },
 
-  async createFixPr(analysisId) {
+  async createFixPr(analysisId, gapIds = null) {
     const res = await request(`/analysis/${analysisId}/create-fix-pr`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(gapIds ? { gap_ids: gapIds } : {})
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.detail || "Failed to create fix PR");
     return body;
+  },
+
+  async generateFixes(analysisId, gapIds = null) {
+    const res = await request(`/analysis/${analysisId}/generate-fixes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gap_ids: gapIds })
+    });
+    const body = await res.json().catch(() => ([]));
+    if (!res.ok) throw new Error(body.detail || "Failed to generate code fixes");
+    return body;
+  },
+
+  async getCodeFixes(analysisId) {
+    const res = await request(`/analysis/${analysisId}/code-fixes`);
+    if (!res.ok) throw new Error("Failed to load code fixes");
+    return res.json();
   },
 
   async getAnalyses() {

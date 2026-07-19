@@ -1,6 +1,6 @@
 # remediation_engine.py
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from app.services.qwen_client import qwen_client
 from app.config import settings
 
@@ -8,6 +8,60 @@ logger = logging.getLogger("app.agents.remediation_engine")
 
 class RemediationEngineAgent:
     """Uses Qwen-Max to generate step-by-step repair plans and code snippets for fixing compliance gaps."""
+
+    async def generate_code_fix(
+        self,
+        gap_description: str,
+        remediation_plan: str,
+        file_path: str,
+        original_content: str,
+    ) -> Optional[str]:
+        """Asks Qwen to rewrite one file so it resolves a single compliance gap.
+
+        Returns the full corrected file content, or None if the model declined
+        or the response didn't look like usable source (caller treats None as
+        "no fix available" rather than failing the whole request).
+        """
+        system_prompt = (
+            "You are a senior software engineer applying a single, targeted compliance fix "
+            "to one source file. You will be given the file's current full content, the "
+            "compliance gap it has, and a remediation plan.\n\n"
+            "Rewrite the ENTIRE file with the minimal change needed to resolve the gap. "
+            "Preserve all unrelated code, formatting, comments, and behavior exactly. "
+            "Do not refactor unrelated code. Do not add explanatory comments about the change "
+            "unless the remediation plan asks for that.\n\n"
+            "Respond with ONLY the full corrected file content — no markdown code fences, "
+            "no prose before or after, no JSON wrapper. If the file is too large or the gap "
+            "cannot be safely fixed without more context, respond with exactly: NO_FIX_AVAILABLE"
+        )
+        user_content = (
+            f"File: {file_path}\n\n"
+            f"Compliance gap: {gap_description}\n\n"
+            f"Remediation plan:\n{remediation_plan}\n\n"
+            f"Current file content:\n{original_content}"
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content},
+        ]
+        try:
+            corrected = await qwen_client.chat(messages, model=settings.QWEN_MAX_MODEL)
+        except Exception as e:
+            logger.warning(f"Code fix generation failed for {file_path}: {e}")
+            return None
+
+        corrected = (corrected or "").strip()
+        if not corrected or corrected == "NO_FIX_AVAILABLE" or "NO_FIX_AVAILABLE" in corrected[:40]:
+            return None
+        # Strip an accidental wrapping code fence if the model added one anyway.
+        if corrected.startswith("```"):
+            lines = corrected.splitlines()
+            if lines and lines[-1].strip() == "```":
+                lines = lines[1:-1]
+            else:
+                lines = lines[1:]
+            corrected = "\n".join(lines)
+        return corrected
 
     async def remediate(self, gaps: List[Dict[str, Any]], codebase_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generates remediation plans for non-compliant and partially compliant requirements."""
