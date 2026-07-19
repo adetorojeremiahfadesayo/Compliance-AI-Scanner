@@ -11,6 +11,7 @@ from app.models.database import SessionLocal, Analysis, ComplianceGap, AuditLog,
 from app.models.schemas import AnalysisProgress
 from app.services.github_service import github_service
 from app.services.qwen_client import qwen_client
+from app.services.remediation_service import approve_remediation_record, create_fix_pr_for_analysis, FixPrError
 from app.config import settings
 from app.agents.regulation_parser import regulation_parser_agent
 from app.agents.codebase_analyzer import codebase_analyzer_agent
@@ -280,7 +281,21 @@ class AnalysisOrchestrator:
                 
             await self.log_audit(db, analysis_id, "Orchestrator", "pipeline_completed", f"Scan finished with score: {analysis.overall_score:.1f}%")
             await self.update_status(db, analysis, "complete", progress_callback, 100.0, "Compliance scan successfully completed!")
-            
+
+            # Autonomy mode: the project owner has opted in to skip the human
+            # approval click, so approve and open the fix PR immediately. Still
+            # goes through the same approve+PR path (and audit trail) as the
+            # manual flow — the only difference is who/what clicked approve,
+            # and it still lands as a PR, never a direct push to the repo.
+            if project.auto_approve_remediation:
+                await self.log_audit(db, analysis_id, "AutopilotAgent", "auto_approval_triggered", "Project has auto-PR enabled; approving remediation without human review.")
+                approve_remediation_record(db, analysis, "Auto-approved by AutopilotAgent (auto-PR enabled).", approver="AutopilotAgent")
+                try:
+                    result = await create_fix_pr_for_analysis(db, analysis)
+                    await self.log_audit(db, analysis_id, "AutopilotAgent", "auto_fix_pr_result", result.get("message", ""))
+                except FixPrError as e:
+                    await self.log_audit(db, analysis_id, "AutopilotAgent", "auto_fix_pr_skipped", str(e))
+
         except Exception as e:
             logger.exception(f"Compliance pipeline failed on analysis {analysis_id}: {e}")
             await self.log_audit(db, analysis_id, "Orchestrator", "pipeline_failed", f"Failed with exception: {e}")

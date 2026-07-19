@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     QWEN_TURBO_MODEL: str = "qwen3.6-flash"
     DATABASE_URL: str = "sqlite:///./compliance_autopilot.db"
     GITHUB_TOKEN: str = ""
+    API_ACCESS_TOKEN: str = ""
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

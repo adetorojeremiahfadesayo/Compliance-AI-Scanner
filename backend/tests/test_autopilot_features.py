@@ -238,6 +238,46 @@ def test_monitoring_toggle_enables_and_disables(client):
     assert disable.json()["monitor_enabled"] is False
 
 
+# --- auto-PR toggle ---------------------------------------------------------
+
+def test_auto_pr_toggle_enables_and_disables(client):
+    test_client, SessionLocal = client
+    project_id = seed_project(SessionLocal)
+
+    enable = test_client.post(f"/api/projects/{project_id}/auto-pr", json={"enabled": True})
+    assert enable.status_code == 200
+    assert enable.json()["auto_approve_remediation"] is True
+
+    disable = test_client.post(f"/api/projects/{project_id}/auto-pr", json={"enabled": False})
+    assert disable.status_code == 200
+    assert disable.json()["auto_approve_remediation"] is False
+
+
+# --- API access token gate ---------------------------------------------------
+
+def test_api_access_token_gate_blocks_and_allows(client, monkeypatch):
+    test_client, _ = client
+    monkeypatch.setattr(settings, "API_ACCESS_TOKEN", "expected-secret")
+
+    unauthenticated = test_client.get("/api/projects")
+    assert unauthenticated.status_code == 401
+
+    wrong_token = test_client.get("/api/projects", headers={"X-API-Token": "wrong"})
+    assert wrong_token.status_code == 401
+
+    authenticated = test_client.get("/api/projects", headers={"X-API-Token": "expected-secret"})
+    assert authenticated.status_code == 200
+
+
+def test_deployment_proof_stays_public_when_token_configured(client, monkeypatch):
+    test_client, _ = client
+    monkeypatch.setattr(settings, "API_ACCESS_TOKEN", "expected-secret")
+
+    response = test_client.get("/api/deployment-proof")
+
+    assert response.status_code == 200
+
+
 # --- fix PR guardrails -----------------------------------------------------
 
 def test_create_fix_pr_rejects_unapproved_remediation(client):

@@ -622,6 +622,51 @@
   .operational-panel__header { padding: var(--space-3) var(--space-4); align-items: flex-start; }
 }
 
+.token-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklch, var(--color-void) 92%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.token-gate__card {
+  width: min(360px, calc(100vw - var(--space-6)));
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--bg-card);
+  border: var(--rule-hairline) solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.token-gate__card svg { justify-self: center; color: var(--status-partial); }
+.token-gate__card h2 { font-size: 18px; margin: 0; }
+.token-gate__card p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+
+.token-gate__card input {
+  padding: var(--space-3);
+  background: var(--bg-secondary);
+  border: var(--rule-hairline) solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.token-gate__card button {
+  padding: var(--space-3);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 @media (max-width: 414px) {
   .command-band__context i,
   .command-band__context > span { display: none; }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, Bot, Check, GitPullRequest, Loader2, Radar, UserCheck } from 'lucide-react';
+import { Activity, ArrowRight, Bot, Check, GitPullRequest, Loader2, Radar, UserCheck, Zap } from 'lucide-react';
 import GapMatrix from '../components/GapMatrix';
 import AgentTimeline from '../components/AgentTimeline';
 import ComplianceReportModal from '../components/ComplianceReportModal';
@@ -41,6 +41,7 @@ function AnalysisView() {
   const [creatingPr, setCreatingPr] = useState(false);
   const [prResult, setPrResult] = useState(null);
   const [togglingMonitor, setTogglingMonitor] = useState(false);
+  const [togglingAutoPr, setTogglingAutoPr] = useState(false);
 
   useEffect(() => {
     let ws = null;
@@ -177,6 +178,20 @@ function AnalysisView() {
     }
   };
 
+  const handleToggleAutoPr = async () => {
+    const project = analysis?.project;
+    if (!project?.id) return;
+    setTogglingAutoPr(true);
+    try {
+      const updated = await api.setAutoPr(project.id, !project.auto_approve_remediation);
+      setAnalysis((current) => current ? { ...current, project: updated } : current);
+    } catch (error) {
+      alert(`Could not update auto-PR setting: ${error.message}`);
+    } finally {
+      setTogglingAutoPr(false);
+    }
+  };
+
   const handleRegressionCheck = async () => {
     setCheckingRegression(true);
     try {
@@ -235,6 +250,18 @@ function AnalysisView() {
         <button type="button" onClick={handleToggleMonitoring} disabled={togglingMonitor} className="btn-secondary compact-action">
           {togglingMonitor ? <Loader2 size={15} className="status-dot-pulsing" /> : <Radar size={15} />}
           {analysis.project.monitor_enabled ? 'Monitoring: On' : 'Monitoring: Off'}
+        </button>
+      ) : null}
+      {analysis?.project?.repo_url ? (
+        <button
+          type="button"
+          onClick={handleToggleAutoPr}
+          disabled={togglingAutoPr}
+          className="btn-secondary compact-action"
+          title="When on, future scans auto-approve remediation and open the fix PR immediately — no review click needed."
+        >
+          {togglingAutoPr ? <Loader2 size={15} className="status-dot-pulsing" /> : <Zap size={15} />}
+          {analysis.project.auto_approve_remediation ? 'Auto-PR: On' : 'Auto-PR: Off'}
         </button>
       ) : null}
       <button type="button" onClick={() => navigate(`/report/${id}`)} className="btn-primary compact-action">Full Report <ArrowRight size={15} /></button>

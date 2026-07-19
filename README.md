@@ -22,6 +22,8 @@ The project is built for the **Qwen Cloud Hackathon Track 4: Autopilot Agent**.
 14. Gates CI pipelines with `GET /api/projects/{id}/ci-status` and serves a live README compliance badge — see [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md).
 15. Provides a one-click seeded demo scan for judging when repository cloning is slow.
 16. Exposes `/api/deployment-proof` for Alibaba Cloud and Qwen Cloud submission evidence.
+17. Gates the API behind an optional shared access token (`API_ACCESS_TOKEN`) so a public deployment isn't wide open to anyone who finds the URL.
+18. Supports a per-project autonomy toggle: **Auto-PR** skips the human approval click and opens the fix PR as soon as a scan completes, still as a PR (never a direct push) so the merge button stays the final human checkpoint.
 
 ## Architecture
 
@@ -61,6 +63,8 @@ DASHSCOPE_API_KEY=your_dashscope_api_key_here
 DATABASE_URL=sqlite:///./compliance_autopilot.db
 # Optional: enables the auto-fix PR feature (needs repo write access)
 GITHUB_TOKEN=your_github_token
+# Optional: gates the API behind a shared access token (see Production Readiness below)
+API_ACCESS_TOKEN=
 ```
 
 Run the API:
@@ -117,6 +121,23 @@ For a quick judge walkthrough, the demo-codebase mode creates a completed seeded
 ## Continuous Compliance & CI
 
 Every project gets a live compliance badge (`/api/projects/{id}/badge.svg`) and a CI gate endpoint (`/api/projects/{id}/ci-status?threshold=60`). A ready-made GitHub Actions workflow lives at [examples/compliance-ci.yml](examples/compliance-ci.yml); setup details are in [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md).
+
+## Production Readiness
+
+This is a hackathon build, and we'd rather say that plainly than have it discovered. What's already in place:
+
+- Dockerized, deployed on Alibaba Cloud ECS, `restart: always`, environment-based config, backend tests, real WebSocket streaming, CI gate integration, and an audit log for every agent/human action.
+- An optional shared-token API gate (`API_ACCESS_TOKEN`, see [backend/.env.example](backend/.env.example)) so the deployment isn't callable by anyone who finds the URL.
+
+What a production deployment would still need, in priority order:
+
+1. **Real user accounts and per-user authorization**, not a single shared token — the current gate stops anonymous drive-by use, it isn't multi-tenant auth.
+2. **HTTPS termination** in front of the app (currently plain HTTP on the demo deployment).
+3. **A managed database** (RDS/PostgreSQL) in place of SQLite, plus a real migration tool instead of the current ad-hoc `ALTER TABLE` column checks.
+4. **Horizontal scaling** — today's deployment is a single ECS instance; a production path would move to a container service (e.g. ACK) behind a load balancer, with the SQLite-only `check_same_thread` constraint removed.
+5. **Secrets management** (e.g. KMS-backed secrets) instead of a plain `.env` file on the host.
+
+The seeded/demo fallback data paths that appear when `DASHSCOPE_API_KEY` is unset are intentional for judging resilience, not something we're pretending isn't there — see **Notes** below.
 
 ## Hackathon Submission
 

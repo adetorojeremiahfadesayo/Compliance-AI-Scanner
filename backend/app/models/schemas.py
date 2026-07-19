@@ -62,12 +62,16 @@ class ProjectResponse(ProjectBase):
     monitor_enabled: bool = False
     monitor_interval_minutes: int = 60
     last_monitor_run: Optional[datetime] = None
+    auto_approve_remediation: bool = False
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
 class MonitoringUpdate(BaseModel):
     enabled: bool
     interval_minutes: int = Field(default=60, ge=5, le=10080)
+
+class AutoPrUpdate(BaseModel):
+    enabled: bool
 
 # Compliance Gap Schemas
 class ComplianceGapBase(BaseModel):

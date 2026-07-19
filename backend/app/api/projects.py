@@ -8,7 +8,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db, Project, Analysis
-from app.models.schemas import ProjectCreate, ProjectResponse, MonitoringUpdate
+from app.models.schemas import ProjectCreate, ProjectResponse, MonitoringUpdate, AutoPrUpdate
 
 logger = logging.getLogger("app.api.projects")
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -121,6 +121,21 @@ def set_monitoring(project_id: int, req: MonitoringUpdate, db: Session = Depends
     db.commit()
     db.refresh(project)
     logger.info(f"Monitoring {'enabled' if req.enabled else 'disabled'} for project {project_id} (every {req.interval_minutes}m).")
+    return project
+
+@router.post("/{project_id}/auto-pr", response_model=ProjectResponse)
+def set_auto_pr(project_id: int, req: AutoPrUpdate, db: Session = Depends(get_db)):
+    """Toggles autonomy mode: when enabled, a completed scan's remediation is
+    auto-approved and its fix PR opened immediately, no human click required.
+    """
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    project.auto_approve_remediation = 1 if req.enabled else 0
+    db.commit()
+    db.refresh(project)
+    logger.info(f"Auto-PR {'enabled' if req.enabled else 'disabled'} for project {project_id}.")
     return project
 
 @router.delete("/{project_id}", response_model=dict)
