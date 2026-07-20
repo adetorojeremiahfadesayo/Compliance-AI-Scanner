@@ -2,13 +2,24 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertOctagon, ArrowUpRight, Clock, GitBranch, Plus, Radar, Server, Shield, UserCheck } from 'lucide-react';
 import { api } from '../services/api';
-import { DEMO_CODEBASES, INDUSTRIES } from '../data/regulations';
+import { INDUSTRIES } from '../data/regulations';
 import ScanField from '../components/ScanField';
 import CountUp from '../components/CountUp';
 import PageContext from '../components/PageContext';
 import OperationalPanel from '../components/OperationalPanel';
 
 const LANG_TAGS = { 'Python (Flask)': 'PY', 'Python (FastAPI)': 'PY', 'Node.js (Express)': 'JS' };
+
+// Wizard showcase repos (NeoBank + the real NodeGoat/Vulpy/Ghostfolio/Navidrome
+// scans) live only inside the New Scan flow, keyed to industry+country — the
+// dashboard should read as a clean workspace, not pre-seeded with demo data.
+const SHOWCASE_PROJECT_NAMES = new Set([
+  'NeoBank API',
+  'NodeGoat (OWASP demo fork)',
+  'Vulpy (deliberately vulnerable Flask app)',
+  'Ghostfolio (Open Source Wealth Management)',
+  'Navidrome (Self-hosted Music Streaming)',
+]);
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -27,8 +38,8 @@ function Dashboard() {
           api.getAnalyses(),
           api.getDeploymentProof(),
         ]);
-        setProjects(fetchedProjects || []);
-        setAnalyses(fetchedAnalyses || []);
+        setProjects((fetchedProjects || []).filter((p) => !SHOWCASE_PROJECT_NAMES.has(p.name)));
+        setAnalyses((fetchedAnalyses || []).filter((a) => !SHOWCASE_PROJECT_NAMES.has(a.project?.name)));
         setDeploymentProof(proof);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
@@ -52,21 +63,13 @@ function Dashboard() {
     return { avgCompliance, criticalGaps, approvedPackages };
   }, [analyses]);
 
-  const inventory = useMemo(() => {
-    if (projects.length) {
-      return projects.map((project) => ({
-        id: project.id,
-        name: project.name,
-        language: project.language || 'Repository',
-        description: project.repo_url || 'Registered repository',
-        context: project.monitor_enabled ? 'Monitoring' : 'Registered',
-      }));
-    }
-    return DEMO_CODEBASES.map((codebase) => ({
-      ...codebase,
-      context: INDUSTRIES.find((industry) => industry.id === codebase.industry)?.label || 'Demo',
-    }));
-  }, [projects]);
+  const inventory = useMemo(() => projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    language: project.language || 'Repository',
+    description: project.repo_url || 'Registered repository',
+    context: project.monitor_enabled ? 'Monitoring' : 'Registered',
+  })), [projects]);
 
   const fieldProjects = inventory.map((item) => ({ id: item.id, status: item.context === 'Monitoring' ? 'complete' : 'pending' }));
 
@@ -122,7 +125,7 @@ function Dashboard() {
 
       <section className="instrument-strip" aria-label="Analysis statistics">
         {[
-          { label: 'Registered codebases', value: projects.length || DEMO_CODEBASES.length },
+          { label: 'Registered codebases', value: projects.length },
           { label: 'Scans run', value: analyses.length },
           { label: 'Average confidence', value: Math.round(stats.avgCompliance), suffix: '%' },
           { label: 'Critical gaps', value: stats.criticalGaps, risk: stats.criticalGaps > 0 },

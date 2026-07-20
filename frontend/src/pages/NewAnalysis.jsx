@@ -165,6 +165,14 @@ function NewAnalysis() {
       return;
     }
 
+    // Real, already-scanned repos: jump straight to the existing completed
+    // analysis instead of seeding a fresh one — no extra scan time or API cost.
+    if (selectedCodebaseData?.real && selectedCodebaseData?.liveAnalysisId) {
+      navigate(`/analysis/${selectedCodebaseData.liveAnalysisId}`);
+      setLoading(false);
+      return;
+    }
+
     // Demo scan: prefer the durable backend seed; fall back to an offline demo.
     try {
       const backendResult = await api.createDemoAnalysisForCodebase(selectedCodebase, selectedCountry);
