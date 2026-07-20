@@ -404,6 +404,57 @@ export const DEMO_CODEBASES = [
       ae: 58, sa: 57, il: 59, qa: 56, kw: 57,
     },
   },
+  // Real, already-scanned open-source repos (not synthetic). Selecting one
+  // navigates straight to its existing completed analysis instead of
+  // running a fresh backend/offline demo seed — see NewAnalysis.jsx.
+  {
+    id: 'nodegoat',
+    name: 'NodeGoat (OWASP demo fork)',
+    industry: 'banking',
+    language: 'Node.js (Express)',
+    languageIcon: '⚡',
+    description: 'Real OWASP Top 10 training app (Node.js/Express) — genuine repo, genuine findings.',
+    files: Array.from({ length: 34 }),
+    linesOfCode: 2100,
+    real: true,
+    liveAnalysisId: 5,
+  },
+  {
+    id: 'vulpy',
+    name: 'Vulpy (deliberately vulnerable Flask app)',
+    industry: 'shipping',
+    language: 'Python (Flask)',
+    languageIcon: '🐍',
+    description: 'Real security-training app (Python/Flask) with side-by-side good/bad implementations.',
+    files: Array.from({ length: 18 }),
+    linesOfCode: 900,
+    real: true,
+    liveAnalysisId: 6,
+  },
+  {
+    id: 'ghostfolio',
+    name: 'Ghostfolio (Open Source Wealth Management)',
+    industry: 'banking',
+    language: 'TypeScript (Angular + NestJS)',
+    languageIcon: '🦕',
+    description: 'Real production wealth management app, actively used by real self-hosters.',
+    files: Array.from({ length: 802 }),
+    linesOfCode: 94000,
+    real: true,
+    liveAnalysisId: 7,
+  },
+  {
+    id: 'navidrome',
+    name: 'Navidrome (Self-hosted Music Streaming)',
+    industry: 'entertainment',
+    language: 'Go',
+    languageIcon: '🎧',
+    description: 'Real production self-hosted music streaming server, actively used by real self-hosters.',
+    files: Array.from({ length: 1360 }),
+    linesOfCode: 56000,
+    real: true,
+    liveAnalysisId: 8,
+  },
 ];
 
 /**
