@@ -421,12 +421,18 @@ async def _generate_single_fix(gap: ComplianceGap, project: Project) -> tuple[Co
         priority=gap.priority or "medium",
         has_fix=False,
     )
-    parsed = _parse_code_location(gap.code_location or "")
-    if not parsed:
-        base.error = "No resolvable file location for this finding."
-        return base, "", ""
+    # A gap can span several files (comma-separated code_location, e.g. a plan that
+    # touches both a route and a DAO). Only the first resolvable one is auto-fixed —
+    # full multi-file rewrites in one pass aren't supported yet.
+    resolved_file = None
+    for candidate in (gap.code_location or "").split(","):
+        parsed = _parse_code_location(candidate)
+        if not parsed:
+            continue
+        resolved_file = _resolve_repo_file(project.repo_path, parsed["file_path"])
+        if resolved_file:
+            break
 
-    resolved_file = _resolve_repo_file(project.repo_path, parsed["file_path"])
     if not resolved_file:
         base.error = "Flagged file not found in the scanned repository."
         return base, "", ""
