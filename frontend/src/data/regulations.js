@@ -15,15 +15,6 @@ export const INDUSTRIES = [
     borderColor: 'rgba(88, 166, 255, 0.4)',
   },
   {
-    id: 'shipping',
-    label: 'Shipping & Logistics',
-    icon: '🚢',
-    description: 'Cross-border data transfer, customs compliance, cargo security',
-    color: '#3FB950',
-    gradient: 'linear-gradient(135deg, #1a3d24, #0d1117)',
-    borderColor: 'rgba(63, 185, 80, 0.4)',
-  },
-  {
     id: 'entertainment',
     label: 'Entertainment & Media',
     icon: '🎬',
@@ -31,6 +22,15 @@ export const INDUSTRIES = [
     color: '#BC8CFF',
     gradient: 'linear-gradient(135deg, #2e1a5c, #0d1117)',
     borderColor: 'rgba(188, 140, 255, 0.4)',
+  },
+  {
+    id: 'shipping',
+    label: 'Shipping & Logistics',
+    icon: '🚢',
+    description: 'Cross-border data transfer, customs compliance, cargo security',
+    color: '#3FB950',
+    gradient: 'linear-gradient(135deg, #1a3d24, #0d1117)',
+    borderColor: 'rgba(63, 185, 80, 0.4)',
   },
 ];
 
@@ -322,7 +322,24 @@ export const REGULATIONS = {
 // =====================================
 // DEMO CODEBASES METADATA
 // =====================================
+// Real, already-scanned open-source repos are listed first within their
+// industry group (auto-selected/highlighted by default) since they're the
+// stronger demo. Selecting one navigates straight to its existing completed
+// analysis instead of running a fresh backend/offline demo seed — see
+// NewAnalysis.jsx.
 export const DEMO_CODEBASES = [
+  {
+    id: 'ghostfolio',
+    name: 'Ghostfolio (Open Source Wealth Management)',
+    industry: 'banking',
+    language: 'TypeScript (Angular + NestJS)',
+    languageIcon: '🦕',
+    description: 'Real production wealth management app, actively used by real self-hosters.',
+    files: Array.from({ length: 802 }),
+    linesOfCode: 94000,
+    real: true,
+    liveAnalysisId: 7,
+  },
   {
     id: 'neobank',
     name: 'NeoBank API',
@@ -349,6 +366,30 @@ export const DEMO_CODEBASES = [
       co: 40, jp: 41, au: 39, kr: 42, in: 37,
       ae: 44, sa: 43, il: 45, qa: 42, kw: 43,
     },
+  },
+  {
+    id: 'nodegoat',
+    name: 'NodeGoat (OWASP demo fork)',
+    industry: 'banking',
+    language: 'Node.js (Express)',
+    languageIcon: '⚡',
+    description: 'Real OWASP Top 10 training app (Node.js/Express) — genuine repo, genuine findings.',
+    files: Array.from({ length: 34 }),
+    linesOfCode: 2100,
+    real: true,
+    liveAnalysisId: 5,
+  },
+  {
+    id: 'navidrome',
+    name: 'Navidrome (Self-hosted Music Streaming)',
+    industry: 'entertainment',
+    language: 'Go',
+    languageIcon: '🎧',
+    description: 'Real production self-hosted music streaming server, actively used by real self-hosters.',
+    files: Array.from({ length: 1360 }),
+    linesOfCode: 56000,
+    real: true,
+    liveAnalysisId: 8,
   },
   {
     id: 'streamvault',
@@ -378,6 +419,18 @@ export const DEMO_CODEBASES = [
     },
   },
   {
+    id: 'vulpy',
+    name: 'Vulpy (Security Training App)',
+    industry: 'shipping',
+    language: 'Python (Flask)',
+    languageIcon: '🐍',
+    description: 'Real security-training app (Python/Flask) with side-by-side good/bad implementations.',
+    files: Array.from({ length: 18 }),
+    linesOfCode: 900,
+    real: true,
+    liveAnalysisId: 6,
+  },
+  {
     id: 'cargotrack',
     name: 'CargoTrack',
     industry: 'shipping',
@@ -403,57 +456,6 @@ export const DEMO_CODEBASES = [
       co: 52, jp: 53, au: 54, kr: 55, in: 51,
       ae: 58, sa: 57, il: 59, qa: 56, kw: 57,
     },
-  },
-  // Real, already-scanned open-source repos (not synthetic). Selecting one
-  // navigates straight to its existing completed analysis instead of
-  // running a fresh backend/offline demo seed — see NewAnalysis.jsx.
-  {
-    id: 'nodegoat',
-    name: 'NodeGoat (OWASP demo fork)',
-    industry: 'banking',
-    language: 'Node.js (Express)',
-    languageIcon: '⚡',
-    description: 'Real OWASP Top 10 training app (Node.js/Express) — genuine repo, genuine findings.',
-    files: Array.from({ length: 34 }),
-    linesOfCode: 2100,
-    real: true,
-    liveAnalysisId: 5,
-  },
-  {
-    id: 'vulpy',
-    name: 'Vulpy (deliberately vulnerable Flask app)',
-    industry: 'shipping',
-    language: 'Python (Flask)',
-    languageIcon: '🐍',
-    description: 'Real security-training app (Python/Flask) with side-by-side good/bad implementations.',
-    files: Array.from({ length: 18 }),
-    linesOfCode: 900,
-    real: true,
-    liveAnalysisId: 6,
-  },
-  {
-    id: 'ghostfolio',
-    name: 'Ghostfolio (Open Source Wealth Management)',
-    industry: 'banking',
-    language: 'TypeScript (Angular + NestJS)',
-    languageIcon: '🦕',
-    description: 'Real production wealth management app, actively used by real self-hosters.',
-    files: Array.from({ length: 802 }),
-    linesOfCode: 94000,
-    real: true,
-    liveAnalysisId: 7,
-  },
-  {
-    id: 'navidrome',
-    name: 'Navidrome (Self-hosted Music Streaming)',
-    industry: 'entertainment',
-    language: 'Go',
-    languageIcon: '🎧',
-    description: 'Real production self-hosted music streaming server, actively used by real self-hosters.',
-    files: Array.from({ length: 1360 }),
-    linesOfCode: 56000,
-    real: true,
-    liveAnalysisId: 8,
   },
 ];
 
