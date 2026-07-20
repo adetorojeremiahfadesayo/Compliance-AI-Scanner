@@ -147,6 +147,11 @@ function AnalysisView() {
     try {
       const result = await api.createFixPr(id, gapIds);
       setPrResult(result);
+      if (result.status === 'created' && result.pr_url) {
+        // Take the reviewer straight to GitHub — no extra click needed. Falls
+        // back to the "View pull request" link below if the browser blocks it.
+        window.open(result.pr_url, '_blank', 'noopener,noreferrer');
+      }
       setAuditLogs((current) => [...current, {
         agent_name: 'RemediationEngine',
         action: result.status === 'created' ? 'fix_pr_created' : 'fix_pr_failed',

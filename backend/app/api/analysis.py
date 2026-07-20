@@ -445,6 +445,22 @@ async def _generate_single_fix(gap: ComplianceGap, project: Project) -> tuple[Co
     with open(resolved_file, "r", encoding="utf-8", errors="replace") as f:
         original_content = f.read()
 
+    # Already generated in a previous call — reuse it instead of paying for
+    # another full-file Qwen rewrite of the same gap.
+    if gap.corrected_code:
+        if gap.corrected_code == original_content:
+            base.error = "Model could not produce a safe automatic fix for this finding."
+            return base, "", ""
+        base.has_fix = True
+        base.diff = "\n".join(difflib.unified_diff(
+            original_content.splitlines(),
+            gap.corrected_code.splitlines(),
+            fromfile=f"a/{base.file_path}",
+            tofile=f"b/{base.file_path}",
+            lineterm="",
+        ))
+        return base, gap.corrected_code, original_content
+
     if len(original_content) > MAX_FIX_FILE_CHARS:
         base.error = "File is too large for automatic fix generation — review manually."
         return base, "", ""
