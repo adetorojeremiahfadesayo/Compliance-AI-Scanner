@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./compliance_autopilot.db"
     GITHUB_TOKEN: str = ""
     API_ACCESS_TOKEN: str = ""
+    CLONE_BASE_DIR: str = ""
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

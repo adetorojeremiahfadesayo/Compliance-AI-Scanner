@@ -7,7 +7,10 @@ services:
       - "8000:8000"
     environment:
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - API_ACCESS_TOKEN=${API_ACCESS_TOKEN}
       - DATABASE_URL=sqlite:////app/data/compliance_autopilot.db
+      - CLONE_BASE_DIR=/app/clones
     volumes:
       - backend-data:/app/data
       - ~/.compliance_autopilot:/app/clones
