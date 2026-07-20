@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, FileSearch, GitPullRequest, Loader2, UserCheck } from 'lucide-react';
 import CodeFixPanel from '../components/CodeFixPanel';
 import AgentTimeline from '../components/AgentTimeline';
-import ComplianceReportModal from '../components/ComplianceReportModal';
 import ConfidenceInstrument from '../components/ConfidenceInstrument';
 import PageContext from '../components/PageContext';
 import OperationalPanel from '../components/OperationalPanel';
@@ -33,7 +32,6 @@ function AnalysisView() {
   const [gaps, setGaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [demoMeta, setDemoMeta] = useState(null);
   const [offlineMode, setOfflineMode] = useState(false);
   const [creatingPr, setCreatingPr] = useState(false);
@@ -41,7 +39,6 @@ function AnalysisView() {
 
   useEffect(() => {
     let ws = null;
-    let modalTimer = 0;
     let cancelled = false;
 
     async function loadInitial() {
@@ -57,7 +54,6 @@ function AnalysisView() {
           setGaps(demo.gaps || []);
           setAuditLogs(DEMO_LOGS(demo.project?.name, demo.countryLabel, demo.framework));
           setLoading(false);
-          modalTimer = window.setTimeout(() => setShowModal(true), 800);
           return;
         } catch {
           sessionStorage.removeItem('demoResult');
@@ -73,12 +69,13 @@ function AnalysisView() {
           if (cancelled) return;
           setAuditLogs(logs);
           setGaps(reportGaps);
-          modalTimer = window.setTimeout(() => setShowModal(true), 600);
         } else {
           ws = connectToAnalysis(id, (message) => {
             if (message.status) setAnalysis((current) => current ? { ...current, status: message.status } : null);
             setAuditLogs((current) => [...current, { agent_name: message.stage, action: message.status, details: message.message, timestamp: message.timestamp }]);
-            if (message.status === 'complete') loadInitial();
+            // A live scan just finished — land on the Full Report page directly,
+            // no popup, no detour through Fix Issues first.
+            if (message.status === 'complete') navigate(`/report/${id}`);
           });
         }
       } catch (error) {
@@ -114,7 +111,6 @@ function AnalysisView() {
           },
         })));
         setAuditLogs(DEMO_LOGS('demo-repo', 'Germany', 'GDPR + BaFin KWG'));
-        modalTimer = window.setTimeout(() => setShowModal(true), 800);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -123,7 +119,6 @@ function AnalysisView() {
     loadInitial();
     return () => {
       cancelled = true;
-      window.clearTimeout(modalTimer);
       if (ws) ws.close();
     };
   }, [id]);
@@ -199,17 +194,6 @@ function AnalysisView() {
 
   return (
     <div className="confidence-workspace">
-      {showModal && analysis?.status === 'complete' ? (
-        <ComplianceReportModal
-          result={analysis}
-          industry={demoMeta?.industryLabel || analysis?.industry_label || analysis?.industryLabel || 'Software'}
-          country={demoMeta?.countryLabel || analysis?.country_label || analysis?.countryLabel || 'Global'}
-          countryFlag={demoMeta?.countryFlag || analysis?.country_flag || analysis?.countryFlag || ''}
-          onClose={() => navigate(`/report/${id}`)}
-          onViewReport={() => navigate(`/report/${id}`)}
-        />
-      ) : null}
-
       <PageContext
         title={analysis?.status === 'complete' ? 'Fix Issues' : 'Scan Confidence'}
         description={`${analysis?.project?.name || 'Repository'} against ${analysis?.regulation?.name || analysis?.framework || 'selected compliance controls'}.`}
