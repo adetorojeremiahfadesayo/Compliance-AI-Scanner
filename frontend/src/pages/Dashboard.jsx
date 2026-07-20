@@ -178,7 +178,7 @@ function Dashboard() {
                 </div>
               ) : null}
               {analyses.slice(0, 5).map((analysis) => (
-                <button type="button" className="scan-row" key={analysis.id} onClick={() => navigate(`/analysis/${analysis.id}`)}>
+                <button type="button" className="scan-row" key={analysis.id} onClick={() => navigate(`/report/${analysis.id}`)}>
                   <span><strong>{analysis.project?.name || `Project #${analysis.project_id}`}</strong><small>{analysis.regulation?.name || `Regulation #${analysis.regulation_id}`}</small></span>
                   <span className="scan-row__result"><b>{Math.round(analysis.overall_score || 0)}%</b>{getStatusBadge(analysis)}</span>
                 </button>

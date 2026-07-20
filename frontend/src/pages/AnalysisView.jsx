@@ -200,8 +200,8 @@ function AnalysisView() {
           industry={demoMeta?.industryLabel || analysis?.industry_label || analysis?.industryLabel || 'Software'}
           country={demoMeta?.countryLabel || analysis?.country_label || analysis?.countryLabel || 'Global'}
           countryFlag={demoMeta?.countryFlag || analysis?.country_flag || analysis?.countryFlag || ''}
-          onClose={() => setShowModal(false)}
-          onViewReport={() => { setShowModal(false); navigate(`/report/${id}`); }}
+          onClose={() => navigate(`/report/${id}`)}
+          onViewReport={() => navigate(`/report/${id}`)}
         />
       ) : null}
 
