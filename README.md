@@ -249,11 +249,6 @@ What a production deployment would still need, in priority order:
 Never commit real API keys, GitHub tokens, or `.env` files. Use
 [`backend/.env.example`](backend/.env.example) as the template.
 
-## Hackathon Submission
-
-See [docs/HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) for the
-Devpost description, demo video script, Track 4 positioning, and Alibaba
-Cloud deployment proof checklist.
 
 ## License
 
