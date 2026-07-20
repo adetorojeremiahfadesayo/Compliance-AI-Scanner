@@ -27,6 +27,7 @@
 | YouTube demo video | _add link here once recorded_ |
 | Qwen Cloud layer | `qwen3.7-max`, `qwen3.7-plus`, `qwen3.6-flash` via DashScope |
 | Alibaba Cloud proof | [`backend/app/api/system.py`](backend/app/api/system.py) — `/api/deployment-proof`, deployed on Alibaba Cloud ECS |
+| Architecture diagram | [`docs/architecture-diagram.svg`](docs/architecture-diagram.svg) |
 | Core hook | Real scan → real generated code fix → human review, or a real GitHub pull request |
 | Stack | FastAPI, React, SQLite, Qwen Cloud, Docker, Alibaba Cloud ECS |
 
@@ -95,6 +96,8 @@ human-reviewable pull request:
 | Generic rules | Source-backed rule packs across 3 industries x 25 countries |
 
 ## Architecture
+
+![Compliance Autopilot system architecture](docs/architecture-diagram.svg)
 
 ```mermaid
 flowchart LR
