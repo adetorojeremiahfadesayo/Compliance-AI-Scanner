@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, Download, FileText, Code, Bot, Loader2, Radar, UserCheck, Zap } from 'lucide-react';
+import { Activity, ArrowRight, Download, FileText, Code, Bot, Loader2, Radar, UserCheck, Wrench, Zap } from 'lucide-react';
 import RequirementCard from '../components/RequirementCard';
 import CodeViewer from '../components/CodeViewer';
 import { api } from '../services/api';
@@ -246,15 +246,25 @@ function ReportView() {
         title="Confidence Report"
         description={`${analysis?.project?.name || 'Repository'} compliance evidence and remediation record.`}
         status={<span className={`badge ${analysis?.remediation_approval_status === 'approved' ? 'badge-compliant' : 'badge-partial'}`}><UserCheck size={12} /> {analysis?.remediation_approval_status || 'pending_review'}</span>}
-        backAction={{ label: 'Back to Fix Issues', onClick: () => navigate(`/analysis/${id}`) }}
+        backAction={{ label: 'Back to Analysis Hub', onClick: () => navigate('/') }}
         actions={(
           <>
             <button type="button" onClick={() => handleDownload('report')} className="btn-secondary compact-action"><Download size={15} /> Export Markdown</button>
-            <button type="button" onClick={() => handleDownload('remediation')} className="btn-primary compact-action"><FileText size={15} /> Remediation Guide</button>
+            <button type="button" onClick={() => handleDownload('remediation')} className="btn-secondary compact-action"><FileText size={15} /> Remediation Guide</button>
             <button type="button" onClick={() => handleDownload('patch')} className="btn-secondary compact-action"><Download size={15} /> Patch Diff</button>
+            <button type="button" onClick={() => navigate(`/analysis/${id}`)} className="btn-primary compact-action">
+              <Wrench size={15} /> Fix These Issues <ArrowRight size={15} />
+            </button>
           </>
         )}
       />
+
+      <div className="full-report-cta">
+        <button type="button" onClick={() => navigate(`/analysis/${id}`)} className="btn-primary compact-action">
+          <Wrench size={15} /> Fix These Issues <ArrowRight size={15} />
+        </button>
+        <p>Generate a real corrected file for each finding below, review the diff, and ship it as a GitHub pull request — or let it open automatically.</p>
+      </div>
 
       <section className="confidence-stage confidence-stage--report">
         <ConfidenceInstrument
