@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, Bot, Check, GitPullRequest, Loader2, Radar, UserCheck, Zap } from 'lucide-react';
-import GapMatrix from '../components/GapMatrix';
+import { ArrowRight, Check, FileSearch, GitPullRequest, Loader2, UserCheck } from 'lucide-react';
 import CodeFixPanel from '../components/CodeFixPanel';
 import AgentTimeline from '../components/AgentTimeline';
 import ComplianceReportModal from '../components/ComplianceReportModal';
@@ -34,15 +33,11 @@ function AnalysisView() {
   const [gaps, setGaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
-  const [checkingRegression, setCheckingRegression] = useState(false);
-  const [regressionResult, setRegressionResult] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [demoMeta, setDemoMeta] = useState(null);
   const [offlineMode, setOfflineMode] = useState(false);
   const [creatingPr, setCreatingPr] = useState(false);
   const [prResult, setPrResult] = useState(null);
-  const [togglingMonitor, setTogglingMonitor] = useState(false);
-  const [togglingAutoPr, setTogglingAutoPr] = useState(false);
 
   useEffect(() => {
     let ws = null;
@@ -165,52 +160,6 @@ function AnalysisView() {
     }
   };
 
-  const handleToggleMonitoring = async () => {
-    const project = analysis?.project;
-    if (!project?.id) return;
-    setTogglingMonitor(true);
-    try {
-      const updated = await api.setMonitoring(project.id, !project.monitor_enabled, project.monitor_interval_minutes || 60);
-      setAnalysis((current) => current ? { ...current, project: updated } : current);
-    } catch (error) {
-      alert(`Could not update monitoring: ${error.message}`);
-    } finally {
-      setTogglingMonitor(false);
-    }
-  };
-
-  const handleToggleAutoPr = async () => {
-    const project = analysis?.project;
-    if (!project?.id) return;
-    setTogglingAutoPr(true);
-    try {
-      const updated = await api.setAutoPr(project.id, !project.auto_approve_remediation);
-      setAnalysis((current) => current ? { ...current, project: updated } : current);
-    } catch (error) {
-      alert(`Could not update auto-PR setting: ${error.message}`);
-    } finally {
-      setTogglingAutoPr(false);
-    }
-  };
-
-  const handleRegressionCheck = async () => {
-    setCheckingRegression(true);
-    try {
-      const result = await api.checkRegression(id);
-      setRegressionResult(result);
-      setAuditLogs((current) => [...current, {
-        agent_name: 'MonitorAgent',
-        action: 'regression_check_completed',
-        details: `${result.new_regressions.length} new regressions, ${result.resolved_gaps.length} resolved gaps.`,
-        timestamp: new Date().toISOString(),
-      }]);
-    } catch {
-      alert('Regression check needs a completed backend scan and a previous scan for the same project.');
-    } finally {
-      setCheckingRegression(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="route-loading">
@@ -227,45 +176,19 @@ function AnalysisView() {
     stage: stageName,
     status: index < stageIndex || analysis?.status === 'complete' ? 'complete' : index === stageIndex ? 'active' : 'pending',
   }));
-  const criticalCount = analysis?.criticalGaps || gaps.filter((gap) => gap.priority === 'critical').length;
-
+  // This page is the "fix it" workspace — approve + generate/review/PR live
+  // here front and center. Regression checks, monitoring, and auto-PR are
+  // secondary/automation controls that live on the Full Report page instead.
   const pageActions = analysis?.status === 'complete' ? (
     <>
-      <button type="button" onClick={() => setShowModal(true)} className="btn-secondary compact-action"><Activity size={15} /> Score Report</button>
-      <button type="button" onClick={handleRegressionCheck} disabled={checkingRegression} className="btn-secondary compact-action">
-        {checkingRegression ? <Loader2 size={15} className="status-dot-pulsing" /> : <Activity size={15} />}
-        {checkingRegression ? 'Checking' : 'Regression Check'}
-      </button>
       {analysis.remediation_approval_status !== 'approved' ? (
         <button type="button" onClick={handleApproveRemediation} disabled={approving} className="btn-secondary compact-action">
           {approving ? <Loader2 size={15} className="status-dot-pulsing" /> : <UserCheck size={15} />}
           {approving ? 'Approving' : 'Approve Remediation'}
         </button>
       ) : (
-        <button type="button" onClick={handleCreateFixPr} disabled={creatingPr} className="btn-secondary compact-action">
-          {creatingPr ? <Loader2 size={15} className="status-dot-pulsing" /> : <GitPullRequest size={15} />}
-          {creatingPr ? 'Opening PR' : 'Create Fix PR'}
-        </button>
+        <span className="badge badge-compliant"><UserCheck size={12} /> Remediation approved</span>
       )}
-      {analysis?.project?.repo_url ? (
-        <button type="button" onClick={handleToggleMonitoring} disabled={togglingMonitor} className="btn-secondary compact-action">
-          {togglingMonitor ? <Loader2 size={15} className="status-dot-pulsing" /> : <Radar size={15} />}
-          {analysis.project.monitor_enabled ? 'Monitoring: On' : 'Monitoring: Off'}
-        </button>
-      ) : null}
-      {analysis?.project?.repo_url ? (
-        <button
-          type="button"
-          onClick={handleToggleAutoPr}
-          disabled={togglingAutoPr}
-          className="btn-secondary compact-action"
-          title="When on, future scans auto-approve remediation and open the fix PR immediately — no review click needed."
-        >
-          {togglingAutoPr ? <Loader2 size={15} className="status-dot-pulsing" /> : <Zap size={15} />}
-          {analysis.project.auto_approve_remediation ? 'Auto-PR: On' : 'Auto-PR: Off'}
-        </button>
-      ) : null}
-      <button type="button" onClick={() => navigate(`/report/${id}`)} className="btn-primary compact-action">Full Report <ArrowRight size={15} /></button>
     </>
   ) : null;
 
@@ -283,7 +206,7 @@ function AnalysisView() {
       ) : null}
 
       <PageContext
-        title="Scan Confidence"
+        title={analysis?.status === 'complete' ? 'Fix Issues' : 'Scan Confidence'}
         description={`${analysis?.project?.name || 'Repository'} against ${analysis?.regulation?.name || analysis?.framework || 'selected compliance controls'}.`}
         status={offlineMode ? <span className="badge badge-partial">Offline demo</span> : <span className={`badge ${analysis?.status === 'complete' ? 'badge-compliant' : 'badge-pending'}`}>{analysis?.status || 'pending'}</span>}
         actions={pageActions}
@@ -297,72 +220,54 @@ function AnalysisView() {
         </div>
       ) : null}
 
-      {regressionResult ? (
-        <OperationalPanel title="Regression Summary" meta={regressionResult.baseline_analysis_id ? `Baseline #${regressionResult.baseline_analysis_id}` : 'No baseline'} className="regression-panel">
-          <div className="regression-grid">
-            <div className="is-risk"><span>New regressions</span><strong>{regressionResult.new_regressions.length}</strong></div>
-            <div className="is-ok"><span>Resolved gaps</span><strong>{regressionResult.resolved_gaps.length}</strong></div>
-            <div className="is-warning"><span>Persistent gaps</span><strong>{regressionResult.persistent_gaps.length}</strong></div>
-          </div>
-        </OperationalPanel>
-      ) : null}
-
       {analysis?.status === 'complete' && !offlineMode ? (
-        <CodeFixPanel
-          analysisId={id}
-          gaps={gaps}
-          repoUrl={analysis?.project?.repo_url}
-          approvalStatus={analysis?.remediation_approval_status}
-          creatingPr={creatingPr}
-          onCreatePr={handleCreateFixPr}
-        />
-      ) : null}
-
-      <section className="confidence-stage">
-        <ConfidenceInstrument
-          score={analysis?.overall_score || 0}
-          status={analysis?.status || 'pending'}
-          progress={progress}
-          meta={[
-            { label: 'Project', value: analysis?.project?.name },
-            { label: 'Framework', value: analysis?.framework || analysis?.regulation?.name },
-            { label: 'Authority', value: analysis?.authority },
-            { label: 'Review', value: analysis?.remediation_approval_status || 'pending_review' },
-          ]}
-        />
-        <div className="confidence-stage__field">
-          <ScanField mode="evidence" stages={stageNodes} findings={gaps} />
-          <div className="confidence-stage__field-label"><span>Evidence constellation</span><strong>{isRunning ? 'Pipeline active' : `${gaps.length} findings mapped`}</strong></div>
-        </div>
-      </section>
-
-      <section className="stage-rail" aria-label="Scan stages">
-        {stageNodes.map((stageItem, index) => (
-          <div key={stageItem.stage} className={`stage-rail__item is-${stageItem.status}`}>
-            <span>{stageItem.status === 'complete' ? <Check size={12} /> : String(index + 1).padStart(2, '0')}</span>
-            <strong>{stageItem.stage}</strong>
+        <>
+          <CodeFixPanel
+            analysisId={id}
+            gaps={gaps}
+            repoUrl={analysis?.project?.repo_url}
+            approvalStatus={analysis?.remediation_approval_status}
+            creatingPr={creatingPr}
+            onCreatePr={handleCreateFixPr}
+          />
+          <div className="full-report-cta">
+            <button type="button" onClick={() => navigate(`/report/${id}`)} className="btn-secondary compact-action">
+              <FileSearch size={15} /> View Full Report <ArrowRight size={15} />
+            </button>
+            <p>Confidence score breakdown, requirement-by-requirement evidence, code audit view, regression checks, and monitoring/auto-PR automation controls.</p>
           </div>
-        ))}
-      </section>
-
-      {isRunning ? (
-        <OperationalPanel title="Agent Core Operations" meta="Live pipeline trace"><div className="timeline-pad"><AgentTimeline events={auditLogs} /></div></OperationalPanel>
+        </>
       ) : (
-        <div className="confidence-evidence-grid">
-          <div className="confidence-evidence-grid__main">
-            <OperationalPanel title="Compliance Gaps" meta={`${gaps.length} findings`}><div className="evidence-pad"><GapMatrix gaps={gaps} /></div></OperationalPanel>
-            <OperationalPanel title="Agent Pipeline Trace" meta={`${auditLogs.length} events`}><div className="timeline-pad"><AgentTimeline events={auditLogs} /></div></OperationalPanel>
-          </div>
-          <OperationalPanel title="Scan Record" meta={`#${id}`} className="scan-record">
-            <dl>
-              <div><dt>Status</dt><dd className="is-ok">Complete</dd></div>
-              <div><dt>Total gaps</dt><dd>{analysis?.totalGaps || gaps.length}</dd></div>
-              <div><dt>Critical</dt><dd className="is-risk">{criticalCount}</dd></div>
-              <div><dt>Engine</dt><dd>{analysis?.model_provider || 'Compliance Autopilot'}</dd></div>
-              <div><dt>Models</dt><dd className="mono"><Bot size={12} /> {analysis?.model_names || 'CAP-Analyzer v2'}</dd></div>
-            </dl>
-          </OperationalPanel>
-        </div>
+        <>
+          <section className="confidence-stage">
+            <ConfidenceInstrument
+              score={analysis?.overall_score || 0}
+              status={analysis?.status || 'pending'}
+              progress={progress}
+              meta={[
+                { label: 'Project', value: analysis?.project?.name },
+                { label: 'Framework', value: analysis?.framework || analysis?.regulation?.name },
+                { label: 'Authority', value: analysis?.authority },
+                { label: 'Review', value: analysis?.remediation_approval_status || 'pending_review' },
+              ]}
+            />
+            <div className="confidence-stage__field">
+              <ScanField mode="evidence" stages={stageNodes} findings={gaps} />
+              <div className="confidence-stage__field-label"><span>Evidence constellation</span><strong>{isRunning ? 'Pipeline active' : `${gaps.length} findings mapped`}</strong></div>
+            </div>
+          </section>
+
+          <section className="stage-rail" aria-label="Scan stages">
+            {stageNodes.map((stageItem, index) => (
+              <div key={stageItem.stage} className={`stage-rail__item is-${stageItem.status}`}>
+                <span>{stageItem.status === 'complete' ? <Check size={12} /> : String(index + 1).padStart(2, '0')}</span>
+                <strong>{stageItem.stage}</strong>
+              </div>
+            ))}
+          </section>
+
+          <OperationalPanel title="Agent Core Operations" meta="Live pipeline trace"><div className="timeline-pad"><AgentTimeline events={auditLogs} /></div></OperationalPanel>
+        </>
       )}
     </div>
   );

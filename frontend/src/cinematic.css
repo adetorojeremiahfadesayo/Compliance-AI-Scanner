@@ -533,6 +533,12 @@
 .regression-grid strong { font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
 .regression-grid .is-warning strong { color: var(--color-warning); }
 
+.full-report-cta { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-5); margin-top: var(--space-4); border: var(--rule-hairline) solid var(--color-border); border-radius: var(--radius-md, 10px); background: var(--color-surface-raised, rgba(255,255,255,0.02)); }
+.full-report-cta p { margin: 0; max-width: 640px; color: var(--color-text-faint); font-size: 12px; line-height: 1.6; }
+
+.automation-controls { display: flex; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-5); }
+.automation-controls .regression-grid { margin-top: var(--space-3); }
+
 @media (max-width: 1080px) {
   .confidence-stage { grid-template-columns: 1fr; }
   .confidence-instrument { border-right: 0; border-bottom: var(--rule-hairline) solid var(--color-border); }
