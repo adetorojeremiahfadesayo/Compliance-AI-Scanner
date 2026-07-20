@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1020" font-family="Arial, Helvetica, sans-serif">
+  <rect x="0" y="0" width="1400" height="1020" fill="#FAF6F0"/>
+
+  <!-- Title -->
+  <text x="700" y="50" text-anchor="middle" font-size="34" font-weight="700" fill="#201C17">Compliance Autopilot — System Architecture</text>
+  <text x="700" y="80" text-anchor="middle" font-size="15" fill="#8A8378">4 Qwen agents · 6 pipeline stages · Alibaba Cloud ECS (frontend + backend) · Real GitHub pull requests</text>
+
+  <!-- Browser box -->
+  <rect x="520" y="112" width="360" height="66" rx="10" fill="#201C17"/>
+  <text x="700" y="140" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">Judge / User Browser</text>
+  <text x="700" y="160" text-anchor="middle" font-size="12" fill="#D8D2C6" font-family="monospace">http://47.84.2.120</text>
+
+  <!-- Arrow: browser -> ECS -->
+  <line x1="700" y1="178" x2="700" y2="218" stroke="#8A8378" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="716" y="202" font-size="12" fill="#8A8378">HTTPS</text>
+
+  <!-- GitHub dashed box -->
+  <rect x="30" y="430" width="190" height="150" rx="10" fill="#FFFFFF" stroke="#201C17" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="125" y="460" text-anchor="middle" font-size="15" font-weight="700" fill="#201C17">GitHub</text>
+  <text x="125" y="482" text-anchor="middle" font-size="11" fill="#6b6558">Scanned repository</text>
+  <text x="125" y="503" text-anchor="middle" font-size="11" fill="#6b6558">git clone --depth 1</text>
+  <text x="125" y="521" text-anchor="middle" font-size="11" fill="#6b6558">→ push fix branch</text>
+  <text x="125" y="539" text-anchor="middle" font-size="11" fill="#6b6558">→ open real PR</text>
+  <line x1="220" y1="505" x2="248" y2="505" stroke="#8A8378" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="130" y="565" text-anchor="middle" font-size="10.5" fill="#a39c8c" font-style="italic">github_service.py</text>
+
+  <!-- Big Alibaba Cloud ECS container -->
+  <rect x="250" y="220" width="900" height="530" rx="14" fill="#FFF2E6" stroke="#FF6A00" stroke-width="2.5"/>
+  <text x="272" y="250" font-size="16" font-weight="700" fill="#E85D00">ALIBABA CLOUD · Elastic Compute Service</text>
+  <text x="272" y="268" font-size="11.5" fill="#a3703f">47.84.2.120 · Docker Compose · Ubuntu 22.04</text>
+
+  <!-- nginx frontend box -->
+  <rect x="290" y="282" width="820" height="56" rx="8" fill="#FFFFFF" stroke="#201C17" stroke-width="1.4"/>
+  <text x="700" y="304" text-anchor="middle" font-size="14" font-weight="700" fill="#201C17">nginx — React / Vite frontend build</text>
+  <text x="700" y="322" text-anchor="middle" font-size="11" fill="#6b6558">Serves the SPA, proxies /api/* and /ws/* to the backend container</text>
+
+  <line x1="700" y1="338" x2="700" y2="358" stroke="#8A8378" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- FastAPI box -->
+  <rect x="290" y="360" width="820" height="68" rx="8" fill="#FFFFFF" stroke="#201C17" stroke-width="1.4"/>
+  <text x="700" y="382" text-anchor="middle" font-size="13.5" font-weight="700" fill="#201C17" font-family="monospace">FastAPI · POST /api/analysis · GET /api/analysis/{id} · WS /ws/{id}</text>
+  <text x="700" y="402" text-anchor="middle" font-size="12" fill="#6b6558" font-family="monospace">POST /api/analysis/{id}/generate-fixes · POST /api/analysis/{id}/create-fix-pr</text>
+
+  <line x1="700" y1="428" x2="700" y2="448" stroke="#8A8378" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- orchestrator container -->
+  <rect x="290" y="450" width="820" height="272" rx="10" fill="#F8F1E6" stroke="#CBB896" stroke-width="1.4"/>
+  <text x="310" y="474" font-size="14" font-weight="700" fill="#201C17">orchestrator.py — 6-stage pipeline</text>
+
+  <!-- 4 stage boxes -->
+  <g font-size="11.5">
+    <rect x="310" y="486" width="190" height="56" rx="7" fill="#FFFFFF" stroke="#CBB896"/>
+    <text x="405" y="508" text-anchor="middle" font-weight="700" fill="#201C17">Pending → Parsing</text>
+    <text x="405" y="524" text-anchor="middle" fill="#6b6558">RegulationParser · qwen3.7-max</text>
+
+    <rect x="510" y="486" width="190" height="56" rx="7" fill="#FFFFFF" stroke="#CBB896"/>
+    <text x="605" y="508" text-anchor="middle" font-weight="700" fill="#201C17">Scanning</text>
+    <text x="605" y="524" text-anchor="middle" fill="#6b6558">CodebaseAnalyzer · qwen3.7-plus</text>
+
+    <rect x="710" y="486" width="190" height="56" rx="7" fill="#FFFFFF" stroke="#CBB896"/>
+    <text x="805" y="508" text-anchor="middle" font-weight="700" fill="#201C17">Detecting</text>
+    <text x="805" y="524" text-anchor="middle" fill="#6b6558">GapDetector · qwen3.7-max</text>
+
+    <rect x="910" y="486" width="190" height="56" rx="7" fill="#FFFFFF" stroke="#CBB896"/>
+    <text x="1005" y="508" text-anchor="middle" font-weight="700" fill="#201C17">Remediating → Complete</text>
+    <text x="1005" y="524" text-anchor="middle" fill="#6b6558">RemediationEngine · qwen3.7-max</text>
+  </g>
+
+  <text x="700" y="565" text-anchor="middle" font-size="11.5" fill="#a3703f" font-style="italic">generate_code_fix() — writes a full corrected file per gap, not just a text plan</text>
+
+  <!-- agent + automation note box -->
+  <rect x="310" y="580" width="780" height="120" rx="8" fill="#FFFFFF" stroke="#CBB896" stroke-width="1.2"/>
+  <text x="700" y="604" text-anchor="middle" font-size="13" font-weight="700" fill="#201C17">4 Qwen Agents, one Python orchestrator</text>
+  <text x="700" y="626" text-anchor="middle" font-size="11.3" fill="#6b6558" font-family="monospace">RegulationParser · CodebaseAnalyzer · GapDetector · RemediationEngine</text>
+  <text x="700" y="648" text-anchor="middle" font-size="11" fill="#6b6558">Orchestrator coordinates stages, scoring, and progress events</text>
+  <text x="700" y="668" text-anchor="middle" font-size="11" fill="#6b6558">MonitorAgent — scheduled re-scans, GitHub push webhook, regression checks</text>
+  <text x="700" y="688" text-anchor="middle" font-size="11" fill="#6b6558">Auto-PR toggle — opens the fix PR immediately once a scan completes</text>
+
+  <text x="700" y="734" text-anchor="middle" font-size="11.5" fill="#a3703f" font-style="italic">↓ OpenAI-compatible chat.completions.create() over HTTPS</text>
+
+  <!-- Arrow ECS -> Model Studio -->
+  <line x1="700" y1="750" x2="700" y2="778" stroke="#8A8378" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Model Studio box -->
+  <rect x="470" y="780" width="460" height="96" rx="10" fill="#FF6A00"/>
+  <text x="700" y="812" text-anchor="middle" font-size="17" font-weight="700" fill="#FFFFFF">Alibaba Cloud Model Studio</text>
+  <text x="700" y="833" text-anchor="middle" font-size="12" fill="#FFE8D6">DashScope · dashscope-intl.aliyuncs.com</text>
+  <text x="700" y="853" text-anchor="middle" font-size="12" fill="#FFE8D6" font-family="monospace">qwen3.6-flash · qwen3.7-plus · qwen3.7-max</text>
+
+  <!-- footer -->
+  <text x="700" y="918" text-anchor="middle" font-size="12" fill="#8A8378">WebSocket progress events (parsing / scanning / detecting / remediating / complete) stream live back to the browser through the same path</text>
+  <line x1="450" y1="945" x2="950" y2="945" stroke="#D8D2C6" stroke-width="1"/>
+  <text x="700" y="972" text-anchor="middle" font-size="13" fill="#8A8378">Track 4 · Autopilot Agent — Qwen Cloud Hackathon</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8A8378"/>
+    </marker>
+  </defs>
+</svg>
