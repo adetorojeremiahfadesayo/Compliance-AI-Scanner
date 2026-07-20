@@ -146,9 +146,8 @@ class AnalysisOrchestrator:
             # Refresh remote repos on every scan so regression checks compare fresh
             # code. Locally-bundled demo repos (repo_url is None) are never touched.
             if project.repo_url:
-                repo_dir = project.repo_path or os.path.join(
-                    os.path.expanduser("~"), ".compliance_autopilot", f"project_{project.id}"
-                )
+                clone_base = settings.CLONE_BASE_DIR or os.path.join(os.path.expanduser("~"), ".compliance_autopilot")
+                repo_dir = project.repo_path or os.path.join(clone_base, f"project_{project.id}")
                 await self.log_audit(db, analysis_id, "Orchestrator", "syncing_repo", f"Syncing {project.repo_url} to local drive.")
 
                 try:
