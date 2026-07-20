@@ -3,6 +3,7 @@ import asyncio
 import os
 import re
 import shutil
+import stat
 import logging
 from typing import List, Optional, Tuple
 
@@ -27,11 +28,19 @@ class GitHubService:
         """Clones a public Git repository. Returns the path to the cloned directory."""
         logger.info(f"Cloning repository: {repo_url} into {target_dir}")
         
-        # Ensure target dir is empty or remove it if it exists
+        # Ensure target dir is empty or remove it if it exists. Git objects are
+        # written read-only, which makes plain rmtree silently leave files behind
+        # on Windows (ignore_errors swallows the PermissionError) — clear the
+        # read-only bit and retry so a stale .git can't block the real clone below.
         if os.path.exists(target_dir):
             logger.info(f"Target directory {target_dir} exists, recreating it.")
-            shutil.rmtree(target_dir, ignore_errors=True)
-            
+
+            def _clear_readonly_and_retry(func, path, exc_info):
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+
+            shutil.rmtree(target_dir, onerror=_clear_readonly_and_retry)
+
         os.makedirs(target_dir, exist_ok=True)
         
         # Construct git command: git clone --depth 1 <url> <dir>
