@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Download, FileText, Code, Bot, UserCheck } from 'lucide-react';
+import { Activity, Download, FileText, Code, Bot, Loader2, Radar, UserCheck, Zap } from 'lucide-react';
 import RequirementCard from '../components/RequirementCard';
 import CodeViewer from '../components/CodeViewer';
 import { api } from '../services/api';
@@ -134,6 +134,10 @@ function ReportView() {
   const [gaps, setGaps] = useState([]);
   const [inspector, setInspector] = useState(null);
   const [selectedFindingId, setSelectedFindingId] = useState(null);
+  const [checkingRegression, setCheckingRegression] = useState(false);
+  const [regressionResult, setRegressionResult] = useState(null);
+  const [togglingMonitor, setTogglingMonitor] = useState(false);
+  const [togglingAutoPr, setTogglingAutoPr] = useState(false);
 
   useEffect(() => {
     async function loadReport() {
@@ -193,6 +197,46 @@ function ReportView() {
     }
   };
 
+  const handleRegressionCheck = async () => {
+    setCheckingRegression(true);
+    try {
+      const result = await api.checkRegression(id);
+      setRegressionResult(result);
+    } catch {
+      alert('Regression check needs a completed backend scan and a previous scan for the same project.');
+    } finally {
+      setCheckingRegression(false);
+    }
+  };
+
+  const handleToggleMonitoring = async () => {
+    const project = analysis?.project;
+    if (!project?.id) return;
+    setTogglingMonitor(true);
+    try {
+      const updated = await api.setMonitoring(project.id, !project.monitor_enabled, project.monitor_interval_minutes || 60);
+      setAnalysis((current) => current ? { ...current, project: updated } : current);
+    } catch (error) {
+      alert(`Could not update monitoring: ${error.message}`);
+    } finally {
+      setTogglingMonitor(false);
+    }
+  };
+
+  const handleToggleAutoPr = async () => {
+    const project = analysis?.project;
+    if (!project?.id) return;
+    setTogglingAutoPr(true);
+    try {
+      const updated = await api.setAutoPr(project.id, !project.auto_approve_remediation);
+      setAnalysis((current) => current ? { ...current, project: updated } : current);
+    } catch (error) {
+      alert(`Could not update auto-PR setting: ${error.message}`);
+    } finally {
+      setTogglingAutoPr(false);
+    }
+  };
+
   const selectedGap = gaps.find((gap) => gap.id === selectedFindingId) || gaps[0];
   const activeLine = Number(selectedGap?.code_location?.match(/L(\d+)/)?.[1]) || null;
 
@@ -202,7 +246,7 @@ function ReportView() {
         title="Confidence Report"
         description={`${analysis?.project?.name || 'Repository'} compliance evidence and remediation record.`}
         status={<span className={`badge ${analysis?.remediation_approval_status === 'approved' ? 'badge-compliant' : 'badge-partial'}`}><UserCheck size={12} /> {analysis?.remediation_approval_status || 'pending_review'}</span>}
-        backAction={{ label: 'Back to Scan Confidence', onClick: () => navigate(`/analysis/${id}`) }}
+        backAction={{ label: 'Back to Fix Issues', onClick: () => navigate(`/analysis/${id}`) }}
         actions={(
           <>
             <button type="button" onClick={() => handleDownload('report')} className="btn-secondary compact-action"><Download size={15} /> Export Markdown</button>
@@ -236,6 +280,40 @@ function ReportView() {
         <div><UserCheck size={15} /><span>Review</span><strong>{analysis?.remediation_approval_status || 'pending_review'}</strong></div>
         <div><span>Critical</span><strong className="is-risk">{gaps.filter((gap) => gap.priority === 'critical').length}</strong></div>
       </section>
+
+      <OperationalPanel title="Automation & Regression" meta="Ongoing monitoring, not needed to fix this scan's findings">
+        <div className="automation-controls">
+          <button type="button" onClick={handleRegressionCheck} disabled={checkingRegression} className="btn-secondary compact-action">
+            {checkingRegression ? <Loader2 size={15} className="status-dot-pulsing" /> : <Activity size={15} />}
+            {checkingRegression ? 'Checking' : 'Check for regressions vs. previous scan'}
+          </button>
+          {analysis?.project?.repo_url ? (
+            <button type="button" onClick={handleToggleMonitoring} disabled={togglingMonitor} className="btn-secondary compact-action">
+              {togglingMonitor ? <Loader2 size={15} className="status-dot-pulsing" /> : <Radar size={15} />}
+              Continuous monitoring: {analysis.project.monitor_enabled ? 'On — rescans on a schedule' : 'Off'}
+            </button>
+          ) : null}
+          {analysis?.project?.repo_url ? (
+            <button
+              type="button"
+              onClick={handleToggleAutoPr}
+              disabled={togglingAutoPr}
+              className="btn-secondary compact-action"
+              title="When on, future scans skip human approval and open the fix PR immediately."
+            >
+              {togglingAutoPr ? <Loader2 size={15} className="status-dot-pulsing" /> : <Zap size={15} />}
+              Auto-open fix PR on future scans: {analysis.project.auto_approve_remediation ? 'On — no approval needed' : 'Off — approval required'}
+            </button>
+          ) : null}
+        </div>
+        {regressionResult ? (
+          <div className="regression-grid">
+            <div className="is-risk"><span>New regressions</span><strong>{regressionResult.new_regressions.length}</strong></div>
+            <div className="is-ok"><span>Resolved gaps</span><strong>{regressionResult.resolved_gaps.length}</strong></div>
+            <div className="is-warning"><span>Persistent gaps</span><strong>{regressionResult.persistent_gaps.length}</strong></div>
+          </div>
+        ) : null}
+      </OperationalPanel>
 
       <div className="report-evidence-grid">
         <OperationalPanel title="Evaluated Requirements" meta={`${gaps.length} findings`}>
